@@ -91,3 +91,11 @@ data_dir="/data/kubernetes"
 
 # Kubernetes docker etcd ...log dir
 log_dir="/var/log/kubernetes"
+
+
+# -------- certificate  Variables --------------------
+CERT_C="CN"
+CERT_ST="ShangHai"
+CERT_L="Weimob"
+CERT_O="k8s1_dev"
+CERT_OU="System"

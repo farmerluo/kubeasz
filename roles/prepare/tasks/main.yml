@@ -10,6 +10,8 @@
   with_items:
   - "{{ bin_dir }}"
   - "{{ ca_dir }}"
+  - "{{ data_dir }}"
+  - "{{ log_dir }}"
   - /root/.kube
 
 - name: 下载证书工具 CFSSL和 kubectl
