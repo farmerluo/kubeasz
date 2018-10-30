@@ -91,7 +91,7 @@
 
 ## 贡献&致谢
 
-感谢所有为项目提交 `Issues`和`PRs` 的贡献者！感谢[捐赠](docs/mixes/donate.md)鼓励！
+感谢所有为项目提交 `Issues`和`PRs` 的贡献者！
 
 - [如何 PR](docs/mixes/HowToContribute.md)
 
