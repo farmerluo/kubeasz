@@ -55,10 +55,10 @@ KUBE_APISERVER="https://{{ MASTER_IP }}:8443"
 CLUSTER_NETWORK="tencen-ccm"
 
 # K8S Service CIDR, not overlap with node(host) networking
-SERVICE_CIDR="10.253.0.0/16"
+SERVICE_CIDR="10.253.255.0/24"
 
 # Cluster CIDR (Pod CIDR), not overlap with node(host) networking
-CLUSTER_CIDR="10.253.255.0/24"
+CLUSTER_CIDR="10.253.0.0/16"
 
 # NodePort Range
 NODE_PORT_RANGE="20000-40000"
@@ -92,10 +92,10 @@ data_dir="/data/kubernetes"
 # Kubernetes docker etcd ...log dir
 log_dir="/var/log/kubernetes"
 
+# google contaainers images mirror url
+#gcr_mirror="mirrorgooglecontainers"
+gcr_mirror="ccr.ccs.tencentyun.com/weimob-k8s"
 
 # -------- certificate  Variables --------------------
-CERT_C="CN"
 CERT_ST="ShangHai"
 CERT_L="Weimob"
-CERT_O="k8s1_dev"
-CERT_OU="System"

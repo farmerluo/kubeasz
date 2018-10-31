@@ -2,8 +2,8 @@
 - name: 创建kube-node 相关目录
   file: name={{ item }} state=directory
   with_items:
-  - /var/lib/kubelet
-  - /var/lib/kube-proxy
+  - "{{ data_dir }}/kubelet"
+  - "{{ data_dir }}/kube-proxy"
   - /etc/cni/net.d
 
 - name: 下载 kubelet,kube-proxy 二进制和基础 cni plugins

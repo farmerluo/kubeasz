@@ -2,7 +2,7 @@
 PROXY_MODE: "iptables"
 
 # Kubelet 根目录
-KUBELET_ROOT_DIR: "/var/lib/kubelet"
+KUBELET_ROOT_DIR: "{{ data_dir }}/kubelet"
 
 # node节点最大pod 数
 MAX_PODS: 110

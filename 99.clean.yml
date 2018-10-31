@@ -16,7 +16,7 @@
     ignore_errors: true
 
   - name: umount kubelet filesystems
-    shell: "mount | grep '/var/lib/kubelet'| awk '{print $3}'|xargs umount"
+    shell: "mount | grep '{{ data_dir }}/kubelet'| awk '{print $3}'|xargs umount"
     args:
       warn: false
     ignore_errors: true
@@ -24,8 +24,8 @@
   - name: remove files and dirs of 'kube-node' nodes
     file: name={{ item }} state=absent
     with_items:
-    - "/var/lib/kubelet/"
-    - "/var/lib/kube-proxy/"
+    - "{{ data_dir }}/kubelet/"
+    - "{{ data_dir }}/kube-proxy/"
     - "/etc/systemd/system/kubelet.service"
     - "/etc/systemd/system/kube-proxy.service"
     - "/opt/kube/kube-system/"
@@ -75,7 +75,7 @@
     mount: path=/var/run/docker/netns/default state=unmounted
 
   - name: unmount docker filesystem-2
-    mount: path=/var/lib/docker/overlay state=unmounted
+    mount: path={{ data_dir }}/docker/overlay state=unmounted
 
   - name: remove files and dirs
     file: name={{ item }} state=absent
@@ -85,14 +85,14 @@
     - "/run/flannel/"
     - "/etc/calico/"
     - "/var/run/calico/"
-    - "/var/lib/calico/"
+    - "{{ data_dir }}/calico/"
     - "/var/log/calico/"
     - "/etc/cilium/"
     - "/var/run/cilium/"
     - "/sys/fs/bpf/tc/"
-    - "/var/lib/cni/"
-    - "/var/lib/docker/"
-    - "/var/lib/kube-router/"
+    - "{{ data_dir }}/cni/"
+    - "{{ data_dir }}/docker/"
+    - "{{ data_dir }}/kube-router/"
     - "/var/run/docker/"
     - "/etc/systemd/system/calico-node.service"
     - "/etc/systemd/system/docker.service"
@@ -140,7 +140,7 @@
   - name: remove files and dirs
     file: name={{ item }} state=absent
     with_items:
-    - "/var/lib/etcd"
+    - "{{ data_dir }}/etcd"
     - "/etc/etcd/"
     - "/backup/k8s"
     - "/etc/systemd/system/etcd.service"
@@ -191,6 +191,7 @@
     - "{{ ca_dir }}" 
     - "/root/.kube/"
     - "/etc/docker/"
+    - "{{ log_dir }}" 
 
   - name: clean 'ENV PATH'
     lineinfile:

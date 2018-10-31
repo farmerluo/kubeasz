@@ -5,10 +5,9 @@ After=network.target
 
 [Service]
 ExecStart={{ bin_dir }}/kube-apiserver \
-  --enable-admission-plugins \
+  --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota,NodeRestriction \
   --bind-address={{ inventory_hostname }} \
   --insecure-bind-address=127.0.0.1 \
-#  --insecure-port=0 \
   --authorization-mode=Node,RBAC \
   --kubelet-https=true \
   --kubelet-client-certificate={{ ca_dir }}/admin.pem \
@@ -42,7 +41,8 @@ ExecStart={{ bin_dir }}/kube-apiserver \
   --proxy-client-key-file={{ ca_dir }}/aggregator-proxy-key.pem \
   --enable-aggregator-routing=true \
   --runtime-config=batch/v2alpha1=true \
-  --log-dir={{ log_dir }}/kube-apiserver.log \
+  --log-dir={{ log_dir }}/ \
+  --logtostderr=false \
   --v=2
 Restart=on-failure
 RestartSec=5
