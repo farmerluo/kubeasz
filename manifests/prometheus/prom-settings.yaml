@@ -17,4 +17,4 @@ pushgateway:
 
 kubeStateMetrics:
   image:
-    repository: mirrorgooglecontainers/kube-state-metrics
+    repository: ccr.ccs.tencentyun.com/weimob-k8s/kube-state-metrics

@@ -51,7 +51,8 @@ MASTER_IP="10.12.97.10"
 KUBE_APISERVER="https://{{ MASTER_IP }}:8443"
 
 # Network plugins supported: calico, flannel, kube-router, cilium, tencen-ccm
-# tencen-ccm:tencentcloud-cloud-controller-manager
+# tencen-ccm: tencentcloud-cloud-controller-manager
+# tencen-ccm: please edit config file: roles/tencen-ccm/defaults/main.yml
 CLUSTER_NETWORK="tencen-ccm"
 
 # K8S Service CIDR, not overlap with node(host) networking

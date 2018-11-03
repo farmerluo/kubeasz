@@ -6,11 +6,16 @@ After=network.target
 [Service]
 # kube-proxy 根据 --cluster-cidr 判断集群内部和外部流量，指定 --cluster-cidr 或 --masquerade-all 选项后
 # kube-proxy 会对访问 Service IP 的请求做 SNAT，这个特性与calico 实现 network policy冲突，因此禁用
+# kube-proxy 使用腾讯CCM时，需要对service ip的请求做SNAT，所以需加上
 WorkingDirectory={{ data_dir }}/kube-proxy
 ExecStart={{ bin_dir }}/kube-proxy \
   --bind-address={{ inventory_hostname }} \
   --hostname-override={{ inventory_hostname }} \
   --kubeconfig=/etc/kubernetes/kube-proxy.kubeconfig \
+{% if CLUSTER_NETWORK=="tencen-ccm" %}
+  --cluster-cidr={{ CLUSTER_CIDR }} \
+  --masquerade-all=true \
+{% endif %}
   --log-dir={{ log_dir }}/ \
   --logtostderr=false \
   --proxy-mode={{ PROXY_MODE }}

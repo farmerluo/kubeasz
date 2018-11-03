@@ -19,13 +19,16 @@ ExecStart={{ bin_dir }}/kubelet \
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
   --network-plugin=kubenet \
   --cloud-provider=external \
+  --non-masquerade-cidr=0.0.0.0/0 \
 {% else %}
+  --network-plugin=cni \
+  --non-masquerade-cidr=0.0.0.0/0 \
+  --hairpin-mode hairpin-veth \
+{% endif %}
+  --hairpin-mode hairpin-veth \
   --cni-bin-dir={{ bin_dir }} \
   --cni-conf-dir=/etc/cni/net.d \
-  --network-plugin=cni \
-{% endif %}
   --fail-swap-on=false \
-  --hairpin-mode hairpin-veth \
   --hostname-override={{ inventory_hostname }} \
   --kubeconfig=/etc/kubernetes/kubelet.kubeconfig \
   --max-pods={{ MAX_PODS }} \
