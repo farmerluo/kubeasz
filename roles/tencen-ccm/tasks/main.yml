@@ -1,0 +1,35 @@
+- block:
+    - name: 在deploy 节点创建相关目录
+      file: name=/opt/kube/kube-system/tencen-ccm state=directory
+
+    - name: 配置 kube-tencen-ccm DaemonSet yaml文件
+      template: src=kube-tencen-ccm.yaml.j2 dest=/opt/kube/kube-system/tencen-ccm/kube-tencen-ccm.yaml
+  delegate_to: "{{ groups.deploy[0] }}"
+  run_once: true
+    
+- name: 下载kubenet plugins 所需文件
+  copy: src={{ base_dir }}/bin/{{ item }} dest={{ bin_dir }}/{{ item }} mode=0755
+  with_items:
+  - bridge
+  - host-local
+  - loopback
+
+# 只需单节点执行一次
+- name: 运行 tencen-ccm网络
+  shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/kube-system/tencen-ccm/ && sleep 5"
+  delegate_to: "{{ groups.deploy[0] }}"
+  run_once: true
+
+# 删除原有cni配置
+- name: 删除默认cni配置
+  file: path=/etc/cni/net.d/10-default.conf state=absent
+
+# 等待网络插件部署成功，视下载镜像速度而定
+- name: 轮询等待tencen-ccm 运行，视下载镜像速度而定
+  shell: "{{ bin_dir }}/kubectl get pod -n kube-system -o wide|grep 'tencentcloud-cloud-controller-manager'|awk '{print $3}'"
+  register: pod_status
+  until: pod_status.stdout == "Running"
+  delegate_to: "{{ groups.deploy[0] }}"
+  retries: 15
+  delay: 8
+
