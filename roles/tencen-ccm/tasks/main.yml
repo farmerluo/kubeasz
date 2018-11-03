@@ -6,13 +6,6 @@
       template: src=kube-tencen-ccm.yaml.j2 dest=/opt/kube/kube-system/tencen-ccm/kube-tencen-ccm.yaml
   delegate_to: "{{ groups.deploy[0] }}"
   run_once: true
-    
-- name: 下载kubenet plugins 所需文件
-  copy: src={{ base_dir }}/bin/{{ item }} dest={{ bin_dir }}/{{ item }} mode=0755
-  with_items:
-  - bridge
-  - host-local
-  - loopback
 
 # 只需单节点执行一次
 - name: 运行 tencen-ccm网络

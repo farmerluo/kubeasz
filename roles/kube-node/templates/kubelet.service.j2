@@ -7,6 +7,7 @@ Requires=docker.service
 [Service]
 WorkingDirectory={{ data_dir }}/kubelet
 #--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest
+#--non-masquerade-cidr=0.0.0.0/0 
 ExecStart={{ bin_dir }}/kubelet \
   --address={{ inventory_hostname }} \
   --allow-privileged=true \
@@ -22,8 +23,6 @@ ExecStart={{ bin_dir }}/kubelet \
   --non-masquerade-cidr=0.0.0.0/0 \
 {% else %}
   --network-plugin=cni \
-  --non-masquerade-cidr=0.0.0.0/0 \
-  --hairpin-mode hairpin-veth \
 {% endif %}
   --hairpin-mode hairpin-veth \
   --cni-bin-dir={{ bin_dir }} \
