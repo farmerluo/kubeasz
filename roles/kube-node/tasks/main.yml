@@ -15,7 +15,6 @@
   - host-local
   - loopback
   - dhcp
-  - flannel
   - ipvlan
   - macvlan
   - portmap
