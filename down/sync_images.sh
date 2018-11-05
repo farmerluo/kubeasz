@@ -2,9 +2,7 @@
 
 
 images="
-metrics-server-amd64:v0.3.1
-kube-state-metrics:v1.3.1
-cluster-autoscaler:v1.2.0
+kubernetes-dashboard-amd64:v1.10.0
 "
 src_url="mirrorgooglecontainers"
 dst_url="ccr.ccs.tencentyun.com/weimob-k8s"

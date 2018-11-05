@@ -36,6 +36,7 @@ ExecStart={{ bin_dir }}/kubelet \
   --root-dir={{ KUBELET_ROOT_DIR }} \
   --tls-cert-file={{ ca_dir }}/kubelet.pem \
   --tls-private-key-file={{ ca_dir }}/kubelet-key.pem \
+  --system-reserved cpu=1000m,memory=4G \
   --log-dir={{ log_dir }}/ \
   --logtostderr=false \
   --v=2
