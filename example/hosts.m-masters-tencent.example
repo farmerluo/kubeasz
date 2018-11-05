@@ -70,8 +70,8 @@ CLUSTER_KUBERNETES_SVC_IP="10.253.255.1"
 # Cluster DNS Server's IP (assigned with an available IP of 'SERVICE_CIDR')
 CLUSTER_DNS_SVC_IP="10.253.255.10"
 
-# Cluster DNS Domain
-CLUSTER_DNS_DOMAIN="cluster.local."
+# Cluster DNS Domain 最后不要加.
+CLUSTER_DNS_DOMAIN="cluster.local"
 
 # Basic auth for apiserver
 BASIC_AUTH_USER="admin"
