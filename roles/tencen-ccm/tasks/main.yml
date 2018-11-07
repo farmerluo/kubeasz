@@ -19,7 +19,40 @@
 
 # 等待网络插件部署成功，视下载镜像速度而定
 - name: 轮询等待tencen-ccm 运行，视下载镜像速度而定
-  shell: "{{ bin_dir }}/kubectl get pod -n kube-system -o wide|grep 'tencentcloud-cloud-controller-manager'|awk '{print $3}'"
+  shell: "{{ bin_dir }}/kubectl get pod -n kube-system -o wide|grep 'tencentcloud-cloud-controller-manager'|awk '{print $3}'|head -n 1"
+  register: pod_status
+  until: pod_status.stdout == "Running"
+  delegate_to: "{{ groups.deploy[0] }}"
+  retries: 15
+  delay: 8
+
+- name: 轮询等待CCM初始化完成
+  shell: "{{ bin_dir }}/kubectl describe node {{ inventory_hostname }} | grep 'node.cloudprovider.kubernetes.io/uninitialized' | wc -l"
+  register: node_status
+  until: node_status.stdout == "0"
+  retries: 15
+  delay: 8
+
+- block:
+    - name: 在deploy 节点创建相关目录
+      file: name=/opt/kube/kube-system/ip-masq-agent state=directory
+
+    - name: 配置 ip-masq-agent DaemonSet yaml文件
+      template: src=ip-masq-agent.yaml.j2 dest=/opt/kube/kube-system/ip-masq-agent/ip-masq-agent.yaml
+
+    - name: 配置 ip-masq-agent config yaml文件  
+      template: src=ip-masq-agent-config.yaml.j2 dest=/opt/kube/kube-system/ip-masq-agent/ip-masq-agent-config.yaml
+
+  delegate_to: "{{ groups.deploy[0] }}"
+  run_once: true
+
+- name: 创建ip-masq-agent 部署
+  shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/kube-system/ip-masq-agent/ && sleep 5"
+  delegate_to: "{{ groups.deploy[0] }}"
+  run_once: true
+
+- name: 轮询等待ip-masq-agent运行，视下载镜像速度而定
+  shell: "{{ bin_dir }}/kubectl get pod -n kube-system -o wide|grep 'ip-masq-agent'|grep '{{ inventory_hostname }}'|awk '{print $3}'"
   register: pod_status
   until: pod_status.stdout == "Running"
   delegate_to: "{{ groups.deploy[0] }}"

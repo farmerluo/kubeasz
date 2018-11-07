@@ -30,7 +30,7 @@ spec:
       containers:
       - name: metrics-server
         #image: k8s.gcr.io/metrics-server-amd64:v0.3.0
-        image: ccr.ccs.tencentyun.com/weimob-k8s/metrics-server-amd64:v0.3.1
+        image: ccr.ccs.tencentyun.com/weimob-k8s-google-containers/metrics-server-amd64:v0.3.1
         imagePullPolicy: IfNotPresent 
         command:
         - /metrics-server

@@ -2,7 +2,7 @@
 
 
 images="
-kubernetes-dashboard-amd64:v1.10.0
+tiller:v2.11
 "
 src_url="mirrorgooglecontainers"
 dst_url="ccr.ccs.tencentyun.com/weimob-k8s"
