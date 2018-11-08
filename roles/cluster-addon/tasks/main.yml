@@ -99,9 +99,26 @@
     - name: 导入 traefik的离线镜像（若执行失败，可忽略）
       shell: "{{ bin_dir }}/docker load -i /opt/kube/images/{{ traefik_offline }}"
       when: 'traefik_offline in image_info.stdout'
+
+    - name: 在deploy 节点创建相关目录
+      file: path={{ item }} state=directory
+      with_items:
+      - /opt/kube/kube-system/traefik
+
+    - name: 准备traefik的部署文件
+      template: src={{ item }}.yaml.j2 dest=/opt/kube/kube-system/traefik/{{ item }}.yaml
+      with_items:
+      - traefik-ui
+      - traefik-rbac
+      - traefik-ds
+
+    - name: 配置node节点traefik label
+      shell: "{{ bin_dir }}/kubectl label node {{ inventory_hostname }} edug=traefik --overwrite"
+      ignore_errors: true
+      delegate_to: "{{ groups.deploy[0] }}"
       
     - name: 创建 traefik部署
-      shell: "{{ bin_dir }}/kubectl apply -f {{ base_dir }}/manifests/ingress/traefik-ingress.yaml"
+      shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/kube-system/traefik/"
       delegate_to: "{{ groups.deploy[0] }}"
       run_once: true
   when: '"traefik-ingress-controller" not in pod_info.stdout and ingress_install == "yes"'
