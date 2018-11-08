@@ -104,6 +104,7 @@
       file: path={{ item }} state=directory
       with_items:
       - /opt/kube/kube-system/traefik
+      delegate_to: "{{ groups.deploy[0] }}"
 
     - name: 准备traefik的部署文件
       template: src={{ item }}.yaml.j2 dest=/opt/kube/kube-system/traefik/{{ item }}.yaml
@@ -111,6 +112,7 @@
       - traefik-ui
       - traefik-rbac
       - traefik-ds
+      delegate_to: "{{ groups.deploy[0] }}"
 
     - name: 配置node节点traefik label
       shell: "{{ bin_dir }}/kubectl label node {{ inventory_hostname }} edug=traefik --overwrite"
