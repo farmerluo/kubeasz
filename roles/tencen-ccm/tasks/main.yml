@@ -33,6 +33,12 @@
   retries: 15
   delay: 8
 
+- name: 删除uninitialized NoSchedule标记
+  shell: "{{ bin_dir }}/kubectl taint node {{ inventory_hostname }} node.cloudprovider.kubernetes.io/uninitialized:NoSchedule-"
+  delegate_to: "{{ groups.deploy[0] }}"
+  when: node_status.stdout != "0"
+  ignore_errors: true
+
 - block:
     - name: 在deploy 节点创建相关目录
       file: name=/opt/kube/kube-system/ip-masq-agent state=directory
@@ -58,8 +64,3 @@
   delegate_to: "{{ groups.deploy[0] }}"
   retries: 15
   delay: 8
-
-#- name: 删除uninitialized NoSchedule标记
-#  shell: "{{ bin_dir }}/kubectl taint node {{ inventory_hostname }} node.cloudprovider.kubernetes.io/uninitialized:NoSchedule-"
-#  delegate_to: "{{ groups.deploy[0] }}"
-#  ignore_errors: true
