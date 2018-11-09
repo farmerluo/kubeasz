@@ -3,15 +3,15 @@
 # It's suggested to download the entire *.tar.gz at https://pan.baidu.com/s/1c4RFaA
 
 # example releases
-K8S_VER=v1.10.4
-ETCD_VER=v3.3.8
-DOCKER_VER=17.03.2-ce
+K8S_VER=v1.10.9
+ETCD_VER=v3.3.10
+DOCKER_VER=18.06.1-ce
 CNI_VER=v0.6.0
-DOCKER_COMPOSE=1.18.0
-HARBOR=v1.5.2
+DOCKER_COMPOSE=1.23.1
+HARBOR=v1.5.4
 
 echo "\nNote1: Before this script, please finish downloading binaries manually from following urls."
-echo "\nNote2：If binaries are not ready, use `Ctrl + C` to stop this script."
+echo "\nNote2：If binaries are not ready, use 'Ctrl + C' to stop this script."
 
 echo "\n----download k8s binary at:"
 echo https://dl.k8s.io/${K8S_VER}/kubernetes-server-linux-amd64.tar.gz
@@ -32,10 +32,12 @@ echo "\n----download docker-compose at:"
 echo https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE}/docker-compose-Linux-x86_64
 
 echo "\n----download harbor-offline-installer at:"
-echo https://github.com/vmware/harbor/releases/download/${HARBOR}/harbor-offline-installer-${HARBOR}.tgz
+#echo https://github.com/vmware/harbor/releases/download/${HARBOR}/harbor-offline-installer-${HARBOR}.tgz
+echo https://storage.googleapis.com/harbor-releases/harbor-offline-installer-${HARBOR}.tgz
 
 echo "\n----download cni plugins at:"
 echo https://github.com/containernetworking/plugins/releases
+echo https://github.com/containernetworking/plugins/releases/download/${CNI_VER}/cni-plugins-amd64-v0.6.0.tgz 
 
 sleep 30
 
@@ -93,14 +95,21 @@ else
 fi
 
 ### prepare cni plugins, needed by flannel;
-if [ -f "cni-${CNI_VER}.tgz" ]; then
+if [ -f "cni-plugins-amd64-${CNI_VER}.tgz" ]; then
   echo "\nextracting cni plugins binaries..."
-  tar zxf cni-${CNI_VER}.tgz
+  tar zxf cni-plugins-amd64-${CNI_VER}.tgz
   mv -f bridge ../bin
   mv -f flannel ../bin
   mv -f host-local ../bin
   mv -f loopback ../bin
   mv -f portmap ../bin
+  mv -f macvlan ../bin
+  mv -f dhcp ../bin
+  mv -f ipvlan ../bin
+  mv -f ptp ../bin
+  mv -f sample ../bin
+  mv -f tuning ../bin
+  mv -f vlan ../bin
 else
-  echo Please download 'cni-${CNI_VER}.tgz' first 
+  echo Please download 'cni-plugins-amd64-${CNI_VER}.tgz' first 
 fi
