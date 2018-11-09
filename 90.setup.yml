@@ -48,7 +48,7 @@
     delegate_to: "{{ groups.deploy[0] }}"
 
   - name: Making master nodes NoSchedule
-    shell: "{{ bin_dir }}/kubectl taint node {{ inventory_hostname }} kubernetes.io/role=master:NoSchedule"
+    shell: "{{ bin_dir }}/kubectl taint node {{ inventory_hostname }} kubernetes.io/role=master:NoSchedule  --overwrite"
     delegate_to: "{{ groups.deploy[0] }}"
     when: DEPLOY_MODE != "allinone"
     ignore_errors: true
