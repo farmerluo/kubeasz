@@ -95,7 +95,7 @@ log_dir="/var/log/kubernetes"
 
 # google contaainers images mirror url
 #gcr_mirror="mirrorgooglecontainers"
-gcr_mirror="ccr.ccs.tencentyun.com/weimob-k8s"
+gcr_mirror="ccr.ccs.tencentyun.com/weimob-k8s-"
 
 # -------- certificate  Variables --------------------
 CERT_ST="ShangHai"
