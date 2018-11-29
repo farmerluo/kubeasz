@@ -1,0 +1,302 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fluentd-config
+  namespace: kube-system
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  system.conf: |-
+    <system>
+      root_dir /tmp/fluentd-buffers/
+    </system>
+
+  containers.input.conf: |-
+    <source>
+      @id fluentd-containers.log
+      @type tail
+      path /var/log/containers/*.log
+      pos_file /var/log/es-containers.log.pos
+      tag raw.kubernetes.*
+      read_from_head true 
+      emit_unmatched_lines true
+      enable_stat_watcher false
+      refresh_interval 30
+      <parse>
+        @type json 
+        #types log:json
+        time_key time 
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </parse>
+    </source>
+
+
+  output.conf: |-
+    # Enriches records with Kubernetes metadata
+    <filter raw.kubernetes.**>
+      @type kubernetes_metadata
+    </filter>
+
+    <match raw.kubernetes.**>
+      @type rewrite_tag_filter
+      <rule>
+        key $['kubernetes']
+        pattern .*traefik.*
+        tag es.traefik.${tag}
+      </rule>
+      <rule>
+        #java pod json log
+        #key kubernetes 
+        key $['kubernetes']['namespace_name'] 
+        pattern .*-(tomcat|java)-.*
+        tag java.${tag}
+      </rule>
+      <rule>
+        #kube-system log
+        key $['kubernetes']['namespace_name']
+        pattern .*kube-system|kube-public.*               
+        tag kube.${tag}
+      </rule>
+      <rule>
+        # defaule namespace log
+        key $['kubernetes']['namespace_name']
+        pattern .*
+        tag default.${tag}
+      </rule>
+    </match>
+
+    <match es.traefik.**>
+      @type relabel
+      @label @traefik
+    </match>
+
+    <match java.**>
+      #@type stdout
+      @type relabel
+      @label @java_app
+      #@label @ERROR
+    </match>
+
+
+    <match kube.**>
+      #@type null
+      @type relabel
+      @label @kube-system
+      #@label @traefik
+    </match>
+
+    <match default.**>
+      #@type stdout
+      @type relabel
+      @label @kube-system
+      @label @traefik
+    </match>
+
+
+    <label @kube-system>
+      <match ** >
+        @type null
+      </match>
+    </label>
+
+    <label @traefik>
+      <filter **>
+        @type parser
+        key_name log
+        reserve_data true
+        reserve_time true
+        remove_key_name_field true
+        replace_invalid_sequence false
+        emit_invalid_record_to_error true
+        <parse>
+          @type multi_format
+          <pattern>
+            format json
+          </pattern>
+          <pattern>
+            format none
+            message_key message
+          </pattern>
+        </parse>
+      </filter>
+
+      <filter **>
+        @type record_modifier
+        <record>
+          es_index ${record['kubernetes']['container_name']} 
+        </record>
+      </filter>
+
+      <match **>
+        @type copy
+        <store>
+          @type stdout
+        </store>
+        <store>
+          @type relabel
+          @label @elasticsearch
+        </store>
+      </match>
+    </label>
+
+    <label @java_app>
+      <filter java.**>
+        @type parser
+        key_name log
+        reserve_data true 
+        reserve_time true 
+        remove_key_name_field true 
+        replace_invalid_sequence false
+        emit_invalid_record_to_error true
+        <parse>
+          @type multi_format 
+          <pattern>
+            format json
+            #time_type string
+            #time_key time
+            #time_format %F %T.%L
+            #timezone +08
+            #keep_time_key true
+          </pattern>
+          <pattern>
+            format none
+            message_key message
+          </pattern>
+        </parse>
+      </filter>
+
+      <match java.**>
+        @type rewrite_tag_filter
+        <rule>
+          key logType 
+          pattern app_java 
+          tag es.${tag}
+        </rule>
+        <rule>
+          key logType 
+          pattern dubbo 
+          tag kafka.${tag}
+        </rule>
+        <rule>
+          key logType 
+          pattern .*
+          tag es.${tag}
+        </rule>
+      </match>
+
+
+      <match es.** >
+        #@type stdout
+        @type relabel
+        @label @elasticsearch
+      </match>
+
+      <match kafka.** >
+        #@type stdout
+        @type relabel
+        @label @kafka
+      </match>
+
+    </label>
+
+    <label @ERROR>
+      <filter es_plugin.**>
+        @type record_transformer
+        <record>
+      #    message ${record["log"]}
+          error  error_log
+        </record>
+      </filter>
+
+      <match ** >
+        @type copy
+        <store>
+          @type stdout
+        </store>
+      #  <store>
+      #    @type relabel
+      #    @label @elasticsearch
+      #  </store>
+      </match>
+    </label>
+
+    <label @elasticsearch>
+      <filter es.**>
+        @type record_modifier
+        remove_keys _dummy_
+        <record>
+          _dummy_ ${record['es_index'] ||= record['kubernetes']['namespace_name']; nil}
+        </record>
+      </filter>
+
+      <match es.**>
+        @id elasticsearch
+        #@type elasticsearch
+        @type elasticsearch_dynamic 
+        @log_level info
+        include_tag_key true
+        hosts {{ fluentd_es_server }} 
+        #port 9200
+        #index_name logstash-${.kubernetes.namespace_name}-%Y%m%d
+        logstash_prefix logstash-${record['es_index']}
+        logstash_format true
+        time_key time
+        time_key_format %Y-%m-%dT%H:%M:%S.%NZ
+        include_timestamp true
+        #time_key_exclude_timestamp false
+        #time_format %F %T.%L
+        #time_precision
+        time_parse_error_tag es_plugin.output.time.error
+        with_transporter_log true
+        emit_error_for_missing_id true
+        #buffer_chunk_limit 2M
+
+        #<buffer tag, time>
+        <buffer>
+          #@type memory
+          #timekey 3600
+          @type file
+          path /var/log/fluentd-buffers/kubernetes.system.buffer
+          flush_mode interval
+          retry_type exponential_backoff
+          flush_thread_count 2
+          flush_interval 5s
+          retry_forever
+          retry_max_interval 30
+          chunk_limit_size 2M
+          queue_limit_length 8
+          overflow_action block
+        </buffer>
+      </match>
+    </label>
+
+    <label @kafka>
+      <match kafka.**>
+        @type copy
+        <store>
+          @type stdout
+        </store>
+        <store>
+          @type kafka2
+
+          brokers {{ fluentd_kafka_brokers }}  
+        
+          default_topic dubbo_chain_log 
+          #topic_key dubbo_chain_log 
+          #message_key_key   kubernetes
+          #default_message_key_key  
+
+          <format>
+            @type json
+          </format>
+
+          output_data_type false
+          output_include_tag false
+          output_include_time false
+
+          <buffer topic>
+            flush_interval 10s
+          </buffer>
+        </store>
+      </match>
+    </label>

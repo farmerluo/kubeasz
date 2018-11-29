@@ -15,16 +15,24 @@ metricsserver_offline: "metrics-server_v0.3.1.tar"
 
 # dashboard 自动安装
 dashboard_install: "yes"
+dashboard_domain: "dashboard-k8s1-dev.xxx.com "
 dashboard_offline: "dashboard_v1.10.0.tar"
 
 # traefik-ingress 自动安装
 ingress_install: "yes"
 ingress_backend: "traefik"
 traefik_offline: "traefik_v1.7.2.tar"
-traefik_ui_domain: "traefik.xxx.com"
+traefik_ui_domain: "traefik-k8s1-dev.xxx.com"
+
+# fluentd 自动安装
+fluentd_install: "yes"
+fluentd_offline: "fluentd_v1.2.5-kafka-0.9.tar"
+fluentd_es_server: "172.21.246.100:9200,172.21.249.34:9200"
+fluentd_kafka_brokers: "10.12.0.26:9092"
+fluentd_kafka_topic: "dubbo_chain_log"
 
 # heapster 自动安装
-heapster_install: "no"
+heapster_install: "yes"
 heapster_offline: "heapster_v1.5.4.tar"
 
 # efk 自动安装
