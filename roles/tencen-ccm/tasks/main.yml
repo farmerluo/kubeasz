@@ -32,6 +32,8 @@
   until: node_status.stdout == "0"
   retries: 15
   delay: 8
+  ignore_errors: true
+
 
 - name: 删除uninitialized NoSchedule标记
   shell: "{{ bin_dir }}/kubectl taint node {{ inventory_hostname }} node.cloudprovider.kubernetes.io/uninitialized:NoSchedule-"
