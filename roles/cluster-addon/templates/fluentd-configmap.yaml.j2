@@ -48,7 +48,7 @@ data:
         #java pod json log
         #key kubernetes 
         key $['kubernetes']['namespace_name'] 
-        pattern .*-(tomcat|java)-.*
+        pattern .*-(tomcat|java|node)-.*
         tag java.${tag}
       </rule>
       <rule>

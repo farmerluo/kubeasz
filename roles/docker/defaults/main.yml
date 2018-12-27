@@ -7,7 +7,7 @@ REG_MIRROR_2: "https://docker.mirrors.ustc.edu.cn"
 
 LOG_DRIVER: "json-file"
 LOG_LEVEL: "warn"
-LOG_MAX_SIZE: "10m"
+LOG_MAX_SIZE: "100m"
 LOG_MAX_FILE: 3
 
 # docker容器存储目录
