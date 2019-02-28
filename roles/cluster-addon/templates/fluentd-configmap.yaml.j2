@@ -89,7 +89,7 @@ data:
       #@type stdout
       @type relabel
       @label @kube-system
-      @label @traefik
+      #@label @traefik
     </match>
 
 
@@ -187,6 +187,11 @@ data:
           pattern .*
           tag es.${tag}
         </rule>
+        <rule>
+          key $['kubernetes']['namespace_name']
+          pattern .*
+          tag es.${tag}
+        <rule>
       </match>
 
 
