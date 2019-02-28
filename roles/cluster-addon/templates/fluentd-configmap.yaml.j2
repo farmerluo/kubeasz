@@ -245,7 +245,7 @@ data:
         @type elasticsearch_dynamic 
         @log_level info
         include_tag_key true
-        hosts {{ fluentd_es_server }} 
+        hosts 172.21.246.100:9200,172.21.249.34:9200 
         #port 9200
         #index_name logstash-${.kubernetes.namespace_name}-%Y%m%d
         logstash_prefix logstash-${record['es_index']}
@@ -289,7 +289,7 @@ data:
         <store>
           @type kafka2
 
-          brokers {{ fluentd_kafka_brokers }}  
+          brokers 10.12.0.26:9092  
         
           default_topic dubbo_chain_log 
           #topic_key dubbo_chain_log 
