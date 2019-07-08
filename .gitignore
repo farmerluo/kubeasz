@@ -21,5 +21,8 @@ roles/cluster-backup/files/*
 /roles/*/vars/*
 !/roles/os-harden/vars/
 
+# cluster backups
+.cluster/
+
 # ccm config
 roles/tencen-ccm/defaults/main.yml

@@ -2,17 +2,25 @@
 
 多节点高可用集群部署步骤与[AllinOne部署](quickStart.md)基本一致，增加LB 负载均衡部署步骤。
 
-**注意1：请确保各节点时区设置一致、时间同步。** 如果你的环境没有提供NTP 时间同步，推荐集成安装[chrony](../guide/chrony.md)。
-**注意2：如果需要在公有云上创建多主多节点集群，请结合阅读[在公有云上部署 kubeasz](kubeasz_on_public_cloud.md)**
+### HA architecture
 
-## 高可用集群所需节点配置如下：
-+ 部署节点------x1 : 运行这份 ansible 脚本的节点
-+ etcd节点------x3 : 注意etcd集群必须是1,3,5,7...奇数个节点
-+ master节点----x2 : 根据实际集群规模可以增加节点数，需要额外规划一个master VIP(虚地址)
-+ lb节点--------x2 : 负载均衡节点两个，安装 haproxy+keepalived
-+ node节点------x3 : 真正应用负载的节点，根据需要提升机器配置和增加节点数
+![ha-1x](../../pics/ha-1x.gif)
 
-项目预定义了4个例子，请修改后完成适合你的集群规划，生产环境建议一个节点只是一个角色。
+- 注意1：请确保各节点时区设置一致、时间同步。 如果你的环境没有提供NTP 时间同步，推荐集成安装[chrony](../guide/chrony.md)
+- 注意2：如果需要在公有云上创建多主多节点集群，请结合阅读[在公有云上部署 kubeasz](kubeasz_on_public_cloud.md)
+
+## 高可用集群所需节点配置如下
+
+|角色|数量|描述|
+|:-|:-|:-|
+|easzctl节点|1|运行ansible/easzctl脚本，一般复用deploy节点，但如果需要[管理创建多个集群](easzctl_cmd.md#%E5%85%B8%E5%9E%8B-easzctl-%E5%88%9B%E5%BB%BA%E7%AE%A1%E7%90%86%E7%9A%84%E9%9B%86%E7%BE%A4%E6%8B%93%E6%89%91%E5%A6%82%E4%B8%8B)，建议使用独立节点（1c1g）|
+|deploy节点|1|运行CA创建、集群部署、插件安装等，一般复用第一个master或node节点|
+|etcd节点|3|注意etcd集群需要1,3,5,7...奇数个节点，一般复用master节点|
+|master节点|2|多master节点需要额外规划一个master VIP(虚地址)|
+|lb节点|2|负载均衡节点安装 haproxy+keepalived，一般复用master节点|
+|node节点|3|运行应用负载的节点，可根据需要提升机器配置/增加节点数|
+
+项目预定义了4个例子，请修改后完成适合你的集群规划。
 
 + [单节点](../example/hosts.allinone.example)
 + [单主多节点](../example/hosts.s-master.example)
@@ -51,7 +59,10 @@ yum update
 # 安装python
 yum install python -y
 ```
+
 ### 3.在deploy节点安装及准备ansible
+
+- pip 安装 ansible（如果 Ubuntu pip报错，请看[附录](00-planning_and_overall_intro.md#Appendix)）
 
 ``` bash
 # Ubuntu 16.04 
@@ -65,57 +76,39 @@ pip install pip --upgrade -i http://mirrors.aliyun.com/pypi/simple/ --trusted-ho
 pip install --no-cache-dir ansible -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
 ```
 
-在`Ubuntu 16.04`中，如果出现以下错误:
-
-``` bash
-Traceback (most recent call last):
-  File "/usr/bin/pip", line 9, in <module>
-    from pip import main
-ImportError: cannot import name main
-```
-将`/usr/bin/pip`做以下修改：
-
-``` bash
-#原代码
-from pip import main
-if __name__ == '__main__':
-    sys.exit(main())
-
-#修改后
-from pip import __main__
-if __name__ == '__main__':
-    sys.exit(__main__._main())
-```
-
 - 在deploy节点配置免密码登陆
 
 ``` bash
-ssh-keygen -t rsa -b 2048 回车 回车 回车
+# 更安全 Ed25519 算法
+ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_ed25519
+# 或者传统 RSA 算法
+ssh-keygen -t rsa -b 2048 -N '' -f ~/.ssh/id_rsa
+
 ssh-copy-id $IPs #$IPs为所有节点地址包括自身，按照提示输入yes 和root密码
 ```
+
 ### 4.在deploy节点编排k8s安装
 
 - 4.1 下载项目源码
 
 ``` bash
 # 方式一：使用git clone
-git clone https://github.com/gjmzj/kubeasz.git
-mkdir -p /etc/ansible
-mv kubeasz/* /etc/ansible
-# 方式二：从发布页面 https://github.com/gjmzj/kubeasz/releases 下载源码解压到同样目录
+git clone --depth=1 https://github.com/easzlab/kubeasz.git /etc/ansible
+
+# 方式二：从发布页面 https://github.com/easzlab/kubeasz/releases 下载源码解压到同样目录
 ```
 - 4.2a 下载二进制文件
 请从分享的[百度云链接](https://pan.baidu.com/s/1c4RFaA)，下载解压到/etc/ansible/bin目录，如果你有合适网络环境也可以按照/down/download.sh自行从官网下载各种tar包
 
 ``` bash
-tar zxvf k8s.1-9-8.tar.gz       # 以安装k8s v1.9.8为例
-mv bin/* /etc/ansible/bin
+# 以安装k8s v1.13.5为例
+tar -xvf k8s.1-13-5.tar.gz -C /etc/ansible
 ```
 - 4.2b [可选]下载离线docker镜像
 服务器使用内部yum源/apt源，但是无法访问公网情况下，请下载离线docker镜像完成集群安装；从百度云盘把`basic_images_kubeasz_x.y.tar.gz` 下载解压到`/etc/ansible/down` 目录
 
 ``` bash
-tar zxvf basic_images_kubeasz_0.2.tar.gz -C /etc/ansible/down
+tar xvf basic_images_kubeasz_1.0.tar.gz -C /etc/ansible/down
 ```
 - 4.3 配置集群参数
   - 4.3.1 必要配置：`cd /etc/ansible && cp example/hosts.m-masters.example hosts`, 然后实际情况修改此hosts文件
@@ -139,6 +132,30 @@ ansible-playbook 07.cluster-addon.yml
 ```
 
 + [可选]对集群所有节点进行操作系统层面的安全加固 `ansible-playbook roles/os-harden/os-harden.yml`，详情请参考[os-harden项目](https://github.com/dev-sec/ansible-os-hardening)
+
+## Appendix
+
+- Ubuntu 1604 安装 ansible 如果出现以下错误
+
+``` bash
+Traceback (most recent call last):
+  File "/usr/bin/pip", line 9, in <module>
+    from pip import main
+ImportError: cannot import name main
+```
+将`/usr/bin/pip`做以下修改即可
+
+``` bash
+#原代码
+from pip import main
+if __name__ == '__main__':
+    sys.exit(main())
+
+#修改后
+from pip import __main__
+if __name__ == '__main__':
+    sys.exit(__main__._main())
+```
 
 
 [后一篇](01-CA_and_prerequisite.md)

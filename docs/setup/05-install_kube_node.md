@@ -14,10 +14,11 @@ roles/kube-node
 └── templates
     ├── cni-default.conf.j2
     ├── kubelet.service.j2
+    ├── kubelet-csr.json.j2
     └── kube-proxy.service.j2
 ```
 
-请在另外窗口打开[roles/kube-node/tasks/main.yml](../roles/kube-node/tasks/main.yml) 文件，对照看以下讲解内容。
+请在另外窗口打开[roles/kube-node/tasks/main.yml](../../roles/kube-node/tasks/main.yml) 文件，对照看以下讲解内容。
 
 ### 创建cni 基础网络插件配置文件
 
@@ -36,11 +37,17 @@ Requires=docker.service
 
 [Service]
 WorkingDirectory=/var/lib/kubelet
-#--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/cpuset/system.slice/kubelet.service
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/hugetlb/system.slice/kubelet.service
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/memory/system.slice/kubelet.service
+ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/pids/system.slice/kubelet.service
 ExecStart={{ bin_dir }}/kubelet \
   --address={{ inventory_hostname }} \
   --allow-privileged=true \
   --anonymous-auth=false \
+  --authentication-token-webhook \
+  --authorization-mode=Webhook \
+  --pod-manifest-path=/etc/kubernetes/manifest \
   --client-ca-file={{ ca_dir }}/ca.pem \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
@@ -57,12 +64,13 @@ ExecStart={{ bin_dir }}/kubelet \
   --root-dir={{ KUBELET_ROOT_DIR }} \
   --tls-cert-file={{ ca_dir }}/kubelet.pem \
   --tls-private-key-file={{ ca_dir }}/kubelet-key.pem \
+  --cgroups-per-qos=true \
+  --cgroup-driver=cgroupfs \
+  --enforce-node-allocatable=pods,kube-reserved \
+  --kube-reserved={{ KUBE_RESERVED }} \
+  --kube-reserved-cgroup=/system.slice/kubelet.service \
+  --eviction-hard={{ HARD_EVICTION }} \
   --v=2
-#kubelet cAdvisor 默认在所有接口监听 4194 端口的请求, 以下iptables限制内网访问
-ExecStartPost=/sbin/iptables -A INPUT -s 10.0.0.0/8 -p tcp --dport 4194 -j ACCEPT
-ExecStartPost=/sbin/iptables -A INPUT -s 172.16.0.0/12 -p tcp --dport 4194 -j ACCEPT
-ExecStartPost=/sbin/iptables -A INPUT -s 192.168.0.0/16 -p tcp --dport 4194 -j ACCEPT
-ExecStartPost=/sbin/iptables -A INPUT -p tcp --dport 4194 -j DROP
 Restart=on-failure
 RestartSec=5
 
@@ -74,10 +82,12 @@ WantedBy=multi-user.target
 + --network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir={{ bin_dir }} 为使用cni 网络，并调用calico管理网络所需的配置
 + --fail-swap-on=false K8S 1.8+需显示禁用这个，否则服务不能启动
 + --client-ca-file={{ ca_dir }}/ca.pem 和 --anonymous-auth=false 关闭kubelet的匿名访问，详见[匿名访问漏洞说明](mixes/01.fix_kubelet_annoymous_access.md)
++ --ExecStartPre=/bin/mkdir -p xxx 对于某些系统（centos7）cpuset和hugetlb 是默认没有初始化system.slice 的，需要手动创建，否则在启用--kube-reserved-cgroup 时会报错Failed to start ContainerManager Failed to enforce System Reserved Cgroup Limits
++ 关于kubelet资源预留相关配置请参考 https://kubernetes.io/docs/tasks/administer-cluster/reserve-compute-resources/
 
 ### 创建 kube-proxy kubeconfig 文件
 
-该步骤已经在 deploy节点完成，[roles/deploy/tasks/main.yml](../roles/deploy/tasks/main.yml)
+该步骤已经在 deploy节点完成，[roles/deploy/tasks/main.yml](../../roles/deploy/tasks/main.yml)
 
 + 生成的kube-proxy.kubeconfig 配置文件需要移动到/etc/kubernetes/目录，后续kube-proxy服务启动参数里面需要指定
 

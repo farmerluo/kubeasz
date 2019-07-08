@@ -38,7 +38,7 @@ pip install pip --upgrade -i http://mirrors.aliyun.com/pypi/simple/ --trusted-ho
 pip install --no-cache-dir ansible -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
 # 配置ansible ssh密钥登陆
 ssh-keygen -t rsa -b 2048 回车 回车 回车
-ssh-copy-id $IP #$IP为本虚机地址，按照提示输入yes 和root密码
+ssh-copy-id $IP #$IP为本虚拟机地址，按照提示输入yes 和root密码
 ```
 
 在`Ubuntu 16.04`中，如果出现以下错误:
@@ -69,23 +69,22 @@ if __name__ == '__main__':
 
 ``` bash
 # 方式一：使用git clone
-git clone https://github.com/gjmzj/kubeasz.git
-mkdir -p /etc/ansible
-mv kubeasz/* /etc/ansible
-# 方式二：从发布页面 https://github.com/gjmzj/kubeasz/releases 下载源码解压到同样目录
+git clone --depth=1 https://github.com/easzlab/kubeasz.git /etc/ansible
+
+# 方式二：从发布页面 https://github.com/easzlab/kubeasz/releases 下载源码解压到同样目录
 ```
 - 4.2a 下载二进制文件  
 请从分享的[百度云链接](https://pan.baidu.com/s/1c4RFaA)，下载解压到/etc/ansible/bin目录，如果你有合适网络环境也可以按照/down/download.sh自行从官网下载各种tar包
 
 ``` bash
-tar zxvf k8s.1-9-8.tar.gz	# 以安装k8s v1.9.8为例
-mv bin/* /etc/ansible/bin
+# 以安装k8s v1.13.5为例
+tar -xvf k8s.1-13-5.tar.gz -C /etc/ansible
 ```
 - 4.2b [可选]下载离线docker镜像  
 服务器使用内部yum源/apt源，但是无法访问公网情况下，请下载离线docker镜像完成集群安装；从百度云盘把`basic_images_kubeasz_x.y.tar.gz` 下载解压到`/etc/ansible/down` 目录
 
 ``` bash
-tar zxvf basic_images_kubeasz_0.2.tar.gz -C /etc/ansible/down
+tar xvf basic_images_kubeasz_1.0.tar.gz -C /etc/ansible/down
 ```
 - 4.3 配置集群参数
   - 4.3.1 必要配置：`cd /etc/ansible && cp example/hosts.allinone.example hosts`, 然后实际情况修改此hosts文件
@@ -117,7 +116,7 @@ ansible-playbook 07.cluster-addon.yml
 kubectl version
 kubectl get componentstatus # 可以看到scheduler/controller-manager/etcd等组件 Healthy
 kubectl cluster-info # 可以看到kubernetes master(apiserver)组件 running
-kubectl get node # 可以看到单 node Ready状态
+kubectl get node # 可以看到单节点就绪 (Ready) 状态
 kubectl get pod --all-namespaces # 可以查看所有集群pod状态，默认已安装网络插件、coredns、metrics-server等
 kubectl get svc --all-namespaces # 可以查看所有集群服务状态
 ```
@@ -129,7 +128,7 @@ kubectl get svc --all-namespaces # 可以查看所有集群服务状态
 # 安装dashboard，默认已集成安装
 #kubectl create -f /etc/ansible/manifests/dashboard
 ```
-+ 登陆 `dashboard`可以查看和管理集群，更多内容请查阅[dashboard文档](guide/dashboard.md)
++ 登陆 `dashboard`可以查看和管理集群，更多内容请查阅[dashboard文档](../guide/dashboard.md)
 
 ### 7.清理集群
 

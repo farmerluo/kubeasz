@@ -1,36 +1,38 @@
 ###---[basic_images ]
-# dns-addon 
-coredns/coredns:1.2.2
-mirrorgooglecontainers/k8s-dns-kube-dns-amd64:1.14.10
-mirrorgooglecontainers/k8s-dns-dnsmasq-nanny-amd64:1.14.10
-mirrorgooglecontainers/k8s-dns-sidecar-amd64:1.14.10
-# metrics-server 
-mirrorgooglecontainers/metrics-server-amd64:v0.3.1
-# calico 
-calico/node:v3.1.3
-calico/cni:v3.1.3
-calico/kube-controllers:v3.1.3
-# cilium 
-cilium/cilium:v1.1.2
-# flannel 
-jmgao1983/flannel:v0.10.0-amd64
-# kube-router 
-cloudnativelabs/kube-router:v0.2.0-beta.9
-# dashboard 
-mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.8.3
-# pause 
+
+coredns/coredns:1.5.0
+
+mirrorgooglecontainers/metrics-server-amd64:v0.3.2
+ 
+calico/node:v3.4.3
+calico/cni:v3.4.3
+calico/kube-controllers:v3.4.3
+
+jmgao1983/flannel:v0.11.0-amd64
+ 
+mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1
+mirrorgooglecontainers/heapster-amd64:v1.5.4
+
 mirrorgooglecontainers/pause-amd64:3.1
-busybox:1.28.4
+
 # traefik ingress 
-traefik:v1.6
-# heapster 
-mirrorgooglecontainers/heapster-grafana-amd64:v4.4.3
-mirrorgooglecontainers/heapster-amd64:v1.5.1
-mirrorgooglecontainers/heapster-influxdb-amd64:v1.3.3
+traefik:v1.7.11
 
 ###---[extra-images]
+# kube-dns
+mirrorgooglecontainers/k8s-dns-kube-dns-amd64:1.14.13
+mirrorgooglecontainers/k8s-dns-dnsmasq-nanny-amd64:1.14.13
+mirrorgooglecontainers/k8s-dns-sidecar-amd64:1.14.13
+# cilium 
+cilium/cilium:v1.4.4
+# kube-router 
+cloudnativelabs/kube-router:v0.2.0
+# heapster 
+mirrorgooglecontainers/heapster-grafana-amd64:v4.4.3
+mirrorgooglecontainers/heapster-amd64:v1.5.4
+mirrorgooglecontainers/heapster-influxdb-amd64:v1.5.2
 # helm tiller server 
-jmgao1983/tiller:v2.9.1
+jmgao1983/tiller:v2.12.3
 # efk 
 mirrorgooglecontainers/elasticsearch:v5.6.4
 alpine:3.6

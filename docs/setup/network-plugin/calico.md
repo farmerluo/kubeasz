@@ -1,6 +1,6 @@
 ## 06-安装calico网络组件.md
 
-推荐阅读[calico kubernetes guide](https://docs.projectcalico.org/v3.0/getting-started/kubernetes/)
+推荐阅读[calico kubernetes guide](https://docs.projectcalico.org/v3.4/getting-started/kubernetes/)
 
 本项目提供多种网络插件可选，如果需要安装calico，请在/etc/ansible/hosts文件中设置变量 `CLUSTER_NETWORK="calico"`，更多的calico设置在`roles/calico/defaults/main.yml`文件定义。
 
@@ -13,10 +13,9 @@ roles/calico/
 └── templates
     ├── calico-csr.json.j2
     ├── calicoctl.cfg.j2
-    ├── calico-rbac.yaml.j2
     └── calico.yaml.j2
 ```
-请在另外窗口打开[roles/calico/tasks/main.yml](../roles/calico/tasks/main.yml) 文件，对照看以下讲解内容。
+请在另外窗口打开`roles/calico/tasks/main.yml`文件，对照看以下讲解内容。
 
 ### 创建calico 证书申请
 
@@ -164,3 +163,4 @@ ETCDCTL_API=3 etcdctl --endpoints="http://127.0.0.1:2379" get --prefix /calico/i
 etcdctl --endpoints=http://127.0.0.1:2379 --ca-file=/etc/kubernetes/ssl/ca.pem ls /calico
 ```
 
+## 下一步：[设置 BGP Route Reflector](calico-bgp-rr.md)

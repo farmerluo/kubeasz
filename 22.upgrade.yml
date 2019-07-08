@@ -9,24 +9,9 @@
   roles:
   - prepare
 
-# update etcd 
-- hosts: etcd
-  roles:
-  - etcd
-
-# update docker binary
-- hosts:
-  - kube-master
-  - new-master
-  - kube-node
-  - new-node
-  roles:
-  - docker
-
 # update masters
 - hosts: 
   - kube-master
-  - new-master
   roles:
   - kube-master
   - kube-node
@@ -34,6 +19,5 @@
 # update nodes
 - hosts: 
   - kube-node
-  - new-node
   roles:
   - { role: kube-node, when: "DEPLOY_MODE != 'allinone'" }
