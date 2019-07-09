@@ -64,24 +64,24 @@
         --certificate-authority={{ ca_dir }}/ca.pem \
         --embed-certs=true \
         --server={{ KUBE_APISERVER }} \
-	--kubeconfig=kubelet.kubeconfig"
+	      --kubeconfig=kubelet.kubeconfig"
 
 - name: 设置客户端认证参数
   shell: "{{ bin_dir }}/kubectl config set-credentials system:node:{{ inventory_hostname }} \
         --client-certificate={{ ca_dir }}/kubelet.pem \
         --embed-certs=true \
         --client-key={{ ca_dir }}/kubelet-key.pem \
-	--kubeconfig=kubelet.kubeconfig"
+        --kubeconfig=kubelet.kubeconfig"
 
 - name: 设置上下文参数
   shell: "{{ bin_dir }}/kubectl config set-context default \
         --cluster=kubernetes \
-	--user=system:node:{{ inventory_hostname }} \
-	--kubeconfig=kubelet.kubeconfig"
+	      --user=system:node:{{ inventory_hostname }} \
+	      --kubeconfig=kubelet.kubeconfig"
 
 - name: 选择默认上下文
   shell: "{{ bin_dir }}/kubectl config use-context default \
-	--kubeconfig=kubelet.kubeconfig"
+	      --kubeconfig=kubelet.kubeconfig"
 
 - name: 移动 kubelet.kubeconfig
   shell: "mv /root/kubelet.kubeconfig /etc/kubernetes/"
