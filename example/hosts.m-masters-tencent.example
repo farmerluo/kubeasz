@@ -20,6 +20,11 @@
 10.12.97.11 LB_IF="eth0" LB_ROLE=backup  # replace 'etho' with node's network interface
 10.12.97.12 LB_IF="eth0" LB_ROLE=master
 
+#【可选】外部负载均衡，用于自有环境负载转发 NodePort 暴露的服务等
+[ex-lb]
+#192.168.1.6 LB_ROLE=backup EX_VIP=192.168.1.250
+#192.168.1.7 LB_ROLE=master EX_VIP=192.168.1.250
+
 [kube-node]
 10.12.97.21
 10.12.97.22
