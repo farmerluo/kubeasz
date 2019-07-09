@@ -16,13 +16,6 @@
   - bridge
   - host-local
   - loopback
-  - dhcp
-  - ipvlan
-  - macvlan
-  - portmap
-  - ptp
-  - tuning
-  - vlan
   tags: upgrade_k8s
 
 - name: 分发 kubeconfig配置文件
