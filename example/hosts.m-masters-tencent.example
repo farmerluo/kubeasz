@@ -50,6 +50,9 @@ K8S_VER="v1.10"
 MASTER_IP="10.12.97.10"
 KUBE_APISERVER="https://{{ MASTER_IP }}:8443"
 
+# 集群容器运行时，支持 docker, containerd
+CONTAINER_RUNTIME="docker"
+
 # Network plugins supported: calico, flannel, kube-router, cilium, tencen-ccm
 # tencen-ccm: tencentcloud-cloud-controller-manager
 # tencen-ccm: please edit config file: roles/tencen-ccm/defaults/main.yml
