@@ -12,7 +12,7 @@ KUBELET_ROOT_DIR: "{{ data_dir }}/kubelet"
 MAX_PODS: 188
 
 # 配置为kube组件（kubelet,kube-proxy,dockerd等）预留的资源量
-KUBE_RESERVED_ENABLED: "no"
+KUBE_RESERVED_ENABLED: "yes"
 KUBE_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
 SYS_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
 
