@@ -18,3 +18,6 @@ SYS_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
 
 # 配置kubelet的hard eviction条件
 HARD_EVICTION: "memory.available<500Mi,nodefs.available<10%"
+
+# 配置kubelet绑核
+KUBE_BIND_CPU_ENABLED: "no"

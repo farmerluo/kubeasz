@@ -10,6 +10,7 @@ ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/hugetlb/system.slice/kubelet.service
 ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/memory/system.slice/kubelet.service
 ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/pids/system.slice/kubelet.service
 {% endif %}
+ExecStartPre=/bin/rm -rf {{ KUBELET_ROOT_DIR }}/cpu_manager_state
 #--non-masquerade-cidr=0.0.0.0/0 
 ExecStart={{ bin_dir }}/kubelet \
   --address={{ inventory_hostname }} \
@@ -51,6 +52,10 @@ ExecStart={{ bin_dir }}/kubelet \
   --kube-reserved-cgroup=/system.slice/kubelet.service \
   --system-reserved={{ SYS_RESERVED }} \
   --system-reserved-cgroup=/system.slice \
+{% endif %}
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
+  --feature-gates=CPUManager=true \
+  --cpu-manager-policy=static \
 {% endif %}
   --eviction-hard={{ HARD_EVICTION }} \
   --log-dir={{ log_dir }}/ \
