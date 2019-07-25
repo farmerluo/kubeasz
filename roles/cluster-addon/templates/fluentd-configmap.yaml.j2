@@ -179,6 +179,11 @@ data:
         </rule>
         <rule>
           key logType 
+          pattern apm 
+          tag apm_kafka.${tag}
+        </rule>
+        <rule>
+          key logType 
           pattern .*
           tag es.${tag}
         </rule>
@@ -205,6 +210,12 @@ data:
         #@type stdout
         @type relabel
         @label @kafka
+      </match>
+
+      <match apm_kafka.** >
+        #@type stdout
+        @type relabel
+        @label @apm_kafka
       </match>
 
     </label>
@@ -245,7 +256,7 @@ data:
         @type elasticsearch_dynamic 
         @log_level info
         include_tag_key true
-        hosts 172.21.246.100:9200,172.21.249.34:9200 
+        hosts 10.16.252.13:9200,10.16.252.22:9200
         #port 9200
         #index_name logstash-${.kubernetes.namespace_name}-%Y%m%d
         logstash_prefix logstash-${record['es_index']}
@@ -281,6 +292,10 @@ data:
     </label>
 
     <label @kafka>
+      <filter kafka.**>
+        @type record_modifier
+        remove_keys kubernetes,docker
+      </filter>
       <match kafka.**>
         @type copy
         <store>
@@ -295,6 +310,38 @@ data:
           #topic_key dubbo_chain_log 
           #message_key_key   kubernetes
           #default_message_key_key  
+
+          <format>
+            @type json
+          </format>
+
+          output_data_type false
+          output_include_tag false
+          output_include_time false
+
+          <buffer topic>
+            flush_interval 10s
+          </buffer>
+        </store>
+      </match>
+    </label>
+
+    <label @apm_kafka>
+      <filter apm_kafka.**>
+        @type record_modifier
+        remove_keys kubernetes,docker
+      </filter>
+      <match apm_kafka.**>
+        @type copy
+        <store>
+          @type stdout
+        </store>
+        <store>
+          @type kafka2
+
+          brokers 10.12.0.26:9092  
+        
+          default_topic apm_chain_log
 
           <format>
             @type json
