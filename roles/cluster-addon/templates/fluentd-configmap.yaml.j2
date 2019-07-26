@@ -128,14 +128,16 @@ data:
       </filter>
 
       <match **>
-        @type copy
-        <store>
-          @type stdout
-        </store>
-        <store>
-          @type relabel
-          @label @elasticsearch
-        </store>
+        @type relabel
+        @label @elasticsearch
+        #@type copy
+        #<store>
+        #  @type stdout
+        #</store>
+        #<store>
+        #  @type relabel
+        #  @label @elasticsearch
+        #</store>
       </match>
     </label>
 
@@ -230,10 +232,11 @@ data:
       </filter>
 
       <match ** >
-        @type copy
-        <store>
-          @type stdout
-        </store>
+        @type stdout
+      #  @type copy
+      #  <store>
+      #    @type stdout
+      #  </store>
       #  <store>
       #    @type relabel
       #    @label @elasticsearch
@@ -281,11 +284,11 @@ data:
           flush_mode interval
           retry_type exponential_backoff
           flush_thread_count 2
-          flush_interval 5s
+          flush_interval 10s
           retry_forever
           retry_max_interval 30
-          chunk_limit_size 2M
-          queue_limit_length 8
+          chunk_limit_size 16M
+          queue_limit_length 80
           overflow_action block
         </buffer>
       </match>
@@ -297,32 +300,32 @@ data:
         remove_keys kubernetes,docker
       </filter>
       <match kafka.**>
-        @type copy
-        <store>
-          @type stdout
-        </store>
-        <store>
-          @type kafka2
+        #@type copy
+        #<store>
+        #  @type stdout
+        #</store>
+        #<store>
+        @type kafka2
 
-          brokers 10.12.0.26:9092  
-        
-          default_topic dubbo_chain_log 
-          #topic_key dubbo_chain_log 
-          #message_key_key   kubernetes
-          #default_message_key_key  
+        brokers 10.12.0.26:9092  
+      
+        default_topic dubbo_chain_log 
+        #topic_key dubbo_chain_log 
+        #message_key_key   kubernetes
+        #default_message_key_key  
 
-          <format>
-            @type json
-          </format>
+        <format>
+          @type json
+        </format>
 
-          output_data_type false
-          output_include_tag false
-          output_include_time false
+        output_data_type false
+        output_include_tag false
+        output_include_time false
 
-          <buffer topic>
-            flush_interval 10s
-          </buffer>
-        </store>
+        <buffer topic>
+          flush_interval 10s
+        </buffer>
+        #</store>
       </match>
     </label>
 
@@ -332,28 +335,28 @@ data:
         remove_keys kubernetes,docker
       </filter>
       <match apm_kafka.**>
-        @type copy
-        <store>
-          @type stdout
-        </store>
-        <store>
-          @type kafka2
+        #@type copy
+        #<store>
+        #  @type stdout
+        #</store>
+        #<store>
+        @type kafka2
 
-          brokers 10.12.0.26:9092  
-        
-          default_topic apm_chain_log
+        brokers 10.12.0.26:9092  
+      
+        default_topic apm_chain_log
 
-          <format>
-            @type json
-          </format>
+        <format>
+          @type json
+        </format>
 
-          output_data_type false
-          output_include_tag false
-          output_include_time false
+        output_data_type false
+        output_include_tag false
+        output_include_time false
 
-          <buffer topic>
-            flush_interval 10s
-          </buffer>
-        </store>
+        <buffer topic>
+          flush_interval 10s
+        </buffer>
+        #</store>
       </match>
     </label>
