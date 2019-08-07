@@ -242,4 +242,8 @@ spec:
               secretKeyRef:
                 name: tencentcloud-cloud-controller-manager-config
                 key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_CLUSTER_ROUTE_TABLE
-
+          - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_VPC_ID
+            valueFrom:
+              secretKeyRef:
+                name: tencentcloud-cloud-controller-manager-config
+                key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_VPC_ID

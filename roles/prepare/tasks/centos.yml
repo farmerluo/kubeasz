@@ -21,6 +21,7 @@
       - rsync               # 文件同步工具，分发证书等配置文件需要
       - ipset
       - ipvsadm
+      - ceph-common
     state: latest
 
 - name: 临时关闭 selinux
