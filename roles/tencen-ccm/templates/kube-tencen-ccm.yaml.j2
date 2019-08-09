@@ -220,6 +220,8 @@ spec:
           - --use-service-account-credentials
           - --configure-cloud-routes=true
           - --allow-untagged-cloud=true
+          - --node-monitor-period=60s
+          - --route-reconciliation-period=60s
         env:
           - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_REGION
             valueFrom:
