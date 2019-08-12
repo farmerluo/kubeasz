@@ -20,6 +20,7 @@
     shell: "{{ bin_dir }}/kubectl label node {{ inventory_hostname }} kubernetes.io/role=master --overwrite"
     ignore_errors: true
     delegate_to: "{{ groups.deploy[0] }}"
+    tags: upgrade_k8s
 
 # update nodes
 - hosts: 
