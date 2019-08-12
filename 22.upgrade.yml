@@ -13,8 +13,8 @@
 - hosts: 
   - kube-master
   roles:
-  - kube-master
   - kube-node
+  - kube-master
 
 # update nodes
 - hosts: 
