@@ -15,6 +15,11 @@
   roles:
   - kube-node
   - kube-master
+  tasks:
+  - name: Setting master role name 
+    shell: "{{ bin_dir }}/kubectl label node {{ inventory_hostname }} kubernetes.io/role=master --overwrite"
+    ignore_errors: true
+    delegate_to: "{{ groups.deploy[0] }}"
 
 # update nodes
 - hosts: 
