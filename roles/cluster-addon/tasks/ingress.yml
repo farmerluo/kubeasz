@@ -16,8 +16,22 @@
           shell: "{{ bin_dir }}/ctr -n=k8s.io images import /opt/kube/images/{{ traefik_offline }}"
           when: 'traefik_offline in image_info.stdout and CONTAINER_RUNTIME == "containerd"'
 
-    - name: 创建 traefik部署
-      shell: "{{ bin_dir }}/kubectl apply -f {{ base_dir }}/manifests/ingress/traefik/traefik-ingress.yaml"
+    - name: 在deploy 节点创建相关目录
+      file: path={{ item }} state=directory
+      with_items:
+      - /opt/kube/kube-system/traefik
+      delegate_to: "{{ groups.deploy[0] }}"
+
+    - name: 准备traefik的部署文件
+      template: src={{ item }}.yaml.j2 dest=/opt/kube/kube-system/traefik/{{ item }}.yaml
+      with_items:
+      - traefik-rbac
+      - traefik-ds
+      - traefik-ui
+      delegate_to: "{{ groups.deploy[0] }}"
+
+    - name: 创建traefik部署
+      shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/kube-system/traefik/"
       delegate_to: "{{ groups.deploy[0] }}"
       run_once: true
   when: 'ingress_backend == "traefik"'
