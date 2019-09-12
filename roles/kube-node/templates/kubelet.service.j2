@@ -10,7 +10,9 @@ ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/hugetlb/system.slice/kubelet.service
 ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/memory/system.slice/kubelet.service
 ExecStartPre=/bin/mkdir -p /sys/fs/cgroup/pids/system.slice/kubelet.service
 {% endif %}
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
 ExecStartPre=/bin/rm -rf {{ KUBELET_ROOT_DIR }}/cpu_manager_state
+{% endif %}
 #--non-masquerade-cidr=0.0.0.0/0 
 ExecStart={{ bin_dir }}/kubelet \
   --node-status-update-frequency=30s \
