@@ -6,6 +6,9 @@ Requires=docker.service
 
 [Service]
 WorkingDirectory={{ data_dir }}/kubelet
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
+ExecStartPre=/bin/rm -rf {{ KUBELET_ROOT_DIR }}/cpu_manager_state
+{% endif %}
 #--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest
 #--non-masquerade-cidr=0.0.0.0/0 
 ExecStart={{ bin_dir }}/kubelet \
@@ -38,6 +41,10 @@ ExecStart={{ bin_dir }}/kubelet \
   --tls-cert-file={{ ca_dir }}/kubelet.pem \
   --tls-private-key-file={{ ca_dir }}/kubelet-key.pem \
   --system-reserved cpu=1000m,memory=4G \
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
+  --feature-gates=CPUManager=true \
+  --cpu-manager-policy=static \
+{% endif %}
   --log-dir={{ log_dir }}/ \
   --logtostderr=false \
   --v=2
