@@ -5,7 +5,7 @@ PROXY_MODE: "iptables"
 KUBELET_ROOT_DIR: "{{ data_dir }}/kubelet"
 
 # node节点最大pod 数
-MAX_PODS: 188
+MAX_PODS: 125
 
 #是否开启绑核
 KUBE_BIND_CPU_ENABLED: "yes"
