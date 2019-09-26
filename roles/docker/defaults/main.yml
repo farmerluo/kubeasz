@@ -1,7 +1,7 @@
 # 国内镜像加速
 
 REG_MIRROR_1: "https://iw5fhz08.mirror.aliyuncs.com"
-REG_MIRROR_2: "https://docker.mirrors.ustc.edu.cn"
+REG_MIRROR_2: "https://mirror.ccs.tencentyun.com"
 
 # docker日志相关
 
