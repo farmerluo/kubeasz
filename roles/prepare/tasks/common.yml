@@ -23,9 +23,16 @@
 
 # 设置系统参数for k8s
 # 消除docker info 警告WARNING: bridge-nf-call-ip[6]tables is disabled
-- name: 设置系统参数
+- name: 设置k8s内核参数
   template: src=95-k8s-sysctl.conf.j2 dest=/etc/sysctl.d/95-k8s-sysctl.conf
 
-- name: 生效系统参数
+- name: 生效k8s内核参数
   shell: "sysctl -p /etc/sysctl.d/95-k8s-sysctl.conf"
+  ignore_errors: true
+
+- name: 设置系统参数
+  template: src=sysctl.conf.j2 dest=/etc/sysctl.conf
+
+- name: 生效系统参数
+  shell: "sysctl -p /etc/sysctl.conf"
   ignore_errors: true
