@@ -2,22 +2,22 @@
 PROXY_MODE: "iptables"
 
 # 基础容器镜像
-SANDBOX_IMAGE: "mirrorgooglecontainers/pause-amd64:3.1"
+SANDBOX_IMAGE: "ccr.ccs.tencentyun.com/weimob-k8s-google-containers/pause-amd64:3.1"
 #SANDBOX_IMAGE: "registry.access.redhat.com/rhel7/pod-infrastructure:latest"
 
 # Kubelet 根目录
 KUBELET_ROOT_DIR: "{{ data_dir }}/kubelet"
 
 # node节点最大pod 数
-MAX_PODS: 188
+MAX_PODS: 125
 
 # 配置为kube组件（kubelet,kube-proxy,dockerd等）预留的资源量
-KUBE_RESERVED_ENABLED: "yes"
+KUBE_RESERVED_ENABLED: "no"
 KUBE_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
 SYS_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
 
 # 配置kubelet的hard eviction条件
-HARD_EVICTION: "memory.available<500Mi,nodefs.available<10%"
+HARD_EVICTION: "memory.available<1Gi,nodefs.available<10%"
 
 # 配置kubelet绑核
-KUBE_BIND_CPU_ENABLED: "no"
+KUBE_BIND_CPU_ENABLED: "yes"
