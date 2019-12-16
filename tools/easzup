@@ -17,7 +17,7 @@ set -o errexit
 export DOCKER_VER=18.09.9
 export KUBEASZ_VER=1.3.0
 export K8S_BIN_VER=v1.14.10
-export EXT_BIN_VER=0.3.0
+export EXT_BIN_VER=0.3.2
 
 function install_docker() {
   # check if a container runtime is already installed
