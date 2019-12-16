@@ -16,7 +16,7 @@ spec:
           effect: "NoSchedule"
       containers:
       - name: ip-masq-agent
-        image: {{ gcr_mirror }}google-containers/ip-masq-agent-amd64:v2.2.0
+        image: {{ gcr_mirror }}google-containers/ip-masq-agent-amd64:v2.5.0
         securityContext:
           privileged: true
         volumeMounts:
