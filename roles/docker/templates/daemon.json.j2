@@ -1,8 +1,5 @@
 {
-  "registry-mirrors": [
-    "https://dockerhub.azk8s.cn",
-    "https://docker.mirrors.ustc.edu.cn",
-    "http://hub-mirror.c.163.com"
+  "registry-mirrors": ["{{ REG_MIRROR_1 }}", "{{ REG_MIRROR_2 }}"
   ],
   "max-concurrent-downloads": 20,
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
