@@ -45,10 +45,7 @@ spec:
         - --traefiklog.format=json
         - --loglevel=INFO
         - --accesslog=true
-        - --accesslog.format=json
-        
-      nodeSelector:
-        edug: traefik 
+        - --accesslog.format=json 
 ---
 kind: Service
 apiVersion: v1
