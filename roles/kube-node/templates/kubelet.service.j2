@@ -50,6 +50,13 @@ ExecStart={{ bin_dir }}/kubelet \
   --cgroups-per-qos=true \
   --cgroup-driver=cgroupfs \
 {% if KUBE_RESERVED_ENABLED == "yes" %}
+{% if DEPLOY_MODE == "allinone" && "kube-master" in group_names %}
+  --enforce-node-allocatable=pods \
+  --kube-reserved={{ KUBE_RESERVED_MASTER }} \
+  --kube-reserved-cgroup=/system.slice/kubelet.service \
+  --system-reserved={{ SYS_RESERVED_MASTER }} \
+  --system-reserved-cgroup=/system.slice \
+{% else %}
   --enforce-node-allocatable=pods \
   --kube-reserved={{ KUBE_RESERVED }} \
   --kube-reserved-cgroup=/system.slice/kubelet.service \
