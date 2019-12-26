@@ -15,9 +15,12 @@ MAX_PODS: 125
 KUBE_RESERVED_ENABLED: "yes"
 KUBE_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
 SYS_RESERVED: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
+#allinone模式时，master节点的预留的资源量
+KUBE_RESERVED_MASTER: "cpu=200m,memory=1Gi,ephemeral-storage=1Gi"
+SYS_RESERVED_MASTER: "cpu=200m,memory=4Gi,ephemeral-storage=1Gi"
 
 # 配置kubelet的hard eviction条件
 HARD_EVICTION: "memory.available<1Gi,nodefs.available<10%"
 
-# 配置kubelet绑核
+# 配置kubelet绑核，当绑核时,KUBE_RESERVED_ENABLED必需为yes
 KUBE_BIND_CPU_ENABLED: "yes"
