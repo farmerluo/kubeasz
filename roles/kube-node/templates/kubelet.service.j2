@@ -63,6 +63,7 @@ ExecStart={{ bin_dir }}/kubelet \
   --system-reserved={{ SYS_RESERVED }} \
   --system-reserved-cgroup=/system.slice \
 {% endif %}
+{% endif %}
 {% if KUBE_BIND_CPU_ENABLED == "yes" %}
   --feature-gates=CPUManager=true \
   --cpu-manager-policy=static \
