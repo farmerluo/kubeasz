@@ -24,20 +24,8 @@
       when: '"oms-admin" not in sa_info.stdout'
 
     - block:
-      - name: 在deploy 节点创建prometheus目录
-        file: path={{ item }} state=directory
-        with_items:
-        - /opt/kube/prometheus/
-        delegate_to: "{{ groups.deploy[0] }}"
-
-      - name: 准备prometheus的部署文件
-        template: src=private/prometheus/{{ item }}.yaml.j2 dest=/opt/kube/prometheus/{{ item }}.yaml
-        with_items:
-        - prometheus
-        delegate_to: "{{ groups.deploy[0] }}"
-
       - name: 应用prometheus的部署文件
-        shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/prometheus/"
+        shell: "{{ bin_dir }}/kubectl apply -f {{ base_dir }}/roles/cluster-addon/templates/private/prometheus/"
         delegate_to: "{{ groups.deploy[0] }}"
         run_once: true
       when: '"prometheus" not in pod_info.stdout'
