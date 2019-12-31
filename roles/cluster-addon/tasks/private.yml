@@ -12,7 +12,7 @@
         delegate_to: "{{ groups.deploy[0] }}"
 
       - name: 准备oms-admin的部署文件
-        template: src=private/{{ item }}.yaml.j2 dest=/opt/kube/kube-system/oms-admin/{{ item }}.yaml
+        template: src=private/oms-admin/{{ item }}.yaml.j2 dest=/opt/kube/kube-system/oms-admin/{{ item }}.yaml
         with_items:
         - oms
         delegate_to: "{{ groups.deploy[0] }}"
@@ -31,7 +31,7 @@
         delegate_to: "{{ groups.deploy[0] }}"
 
       - name: 准备prometheus的部署文件
-        template: src=private/{{ item }}.yaml.j2 dest=/opt/kube/prometheus/{{ item }}.yaml
+        template: src=private/prometheus/{{ item }}.yaml.j2 dest=/opt/kube/prometheus/{{ item }}.yaml
         with_items:
         - prometheus
         delegate_to: "{{ groups.deploy[0] }}"
@@ -50,7 +50,7 @@
         delegate_to: "{{ groups.deploy[0] }}"
 
       - name: 准备custom-metrics的部署文件
-        template: src=private/{{ item }}.yaml.j2 dest=/opt/kube/custom-metrics/{{ item }}.yaml
+        template: src=private/custom-metrics/{{ item }}.yaml.j2 dest=/opt/kube/custom-metrics/{{ item }}.yaml
         with_items:
         - prometheus-adapter
         delegate_to: "{{ groups.deploy[0] }}"
