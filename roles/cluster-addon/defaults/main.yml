@@ -41,11 +41,6 @@ metallb_protocol: "layer2"
 metallb_offline: "metallb_{{ metallbVer }}.tar"
 metallb_vip_pool: "192.168.1.240/29"
 
-# efk 自动安装
-#efk_install: "no"
-
-# prometheus 自动安装
-#prometheus_install: "no"
 
 # fluentd 自动安装
 fluentd_install: "yes"
@@ -53,3 +48,6 @@ fluentd_offline: "fluentd_v1.2.5-kafka-0.9.tar"
 fluentd_es_server: "172.21.246.100:9200,172.21.249.34:9200"
 fluentd_kafka_brokers: "10.12.0.26:9092"
 fluentd_kafka_topic: "dubbo_chain_log"
+
+# 是否安装自定义的相关组件
+private_install: "yes"

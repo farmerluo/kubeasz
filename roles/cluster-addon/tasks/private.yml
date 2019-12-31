@@ -1,0 +1,63 @@
+- block:
+    - name: 获取所有已经创建的serviceaccount
+      command: "{{ bin_dir }}/kubectl get serviceaccount --all-namespaces"
+      delegate_to: "{{ groups.deploy[0] }}"
+      register: sa_info
+
+    - block:
+      - name: 在deploy 节点创建oms-admin目录
+        file: path={{ item }} state=directory
+        with_items:
+        - /opt/kube/kube-system/oms-admin
+        delegate_to: "{{ groups.deploy[0] }}"
+
+      - name: 准备oms-admin的部署文件
+        template: src={{ item }}.yaml.j2 dest=/opt/kube/kube-system/oms-admin/{{ item }}.yaml
+        with_items:
+        - oms
+        delegate_to: "{{ groups.deploy[0] }}"
+
+      - name: 应用oms-admin的部署文件
+        shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/kube-system/oms-admin/"
+        delegate_to: "{{ groups.deploy[0] }}"
+        run_once: true
+      when: '"oms-admin" not in sa_info.stdout'
+
+    - block:
+      - name: 在deploy 节点创建prometheus目录
+        file: path={{ item }} state=directory
+        with_items:
+        - /opt/kube/prometheus/
+        delegate_to: "{{ groups.deploy[0] }}"
+
+      - name: 准备prometheus的部署文件
+        template: src={{ item }}.yaml.j2 dest=/opt/kube/prometheus/{{ item }}.yaml
+        with_items:
+        - prometheus
+        delegate_to: "{{ groups.deploy[0] }}"
+
+      - name: 应用prometheus的部署文件
+        shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/prometheus/"
+        delegate_to: "{{ groups.deploy[0] }}"
+        run_once: true
+      when: '"prometheus" not in pod_info.stdout'
+
+    - block:
+      - name: 在deploy 节点创建custom-metrics目录
+        file: path={{ item }} state=directory
+        with_items:
+        - /opt/kube/custom-metrics/
+        delegate_to: "{{ groups.deploy[0] }}"
+
+      - name: 准备custom-metrics的部署文件
+        template: src={{ item }}.yaml.j2 dest=/opt/kube/custom-metrics/{{ item }}.yaml
+        with_items:
+        - prometheus-adapter
+        delegate_to: "{{ groups.deploy[0] }}"
+
+      - name: 应用custom-metrics的部署文件
+        shell: "{{ bin_dir }}/kubectl apply -f /opt/kube/custom-metrics/"
+        delegate_to: "{{ groups.deploy[0] }}"
+        run_once: true
+      when: '"custom-metrics-apiserver" not in pod_info.stdout and private_install == "yes"'
+

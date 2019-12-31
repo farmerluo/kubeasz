@@ -166,3 +166,8 @@
 - import_tasks: fluentd.yml
   when: '"fluentd" not in pod_info.stdout and fluentd_install == "yes"'
   ignore_errors: true
+
+
+- import_tasks: private.yml
+  when: 'private_install == "yes"'
+  ignore_errors: true

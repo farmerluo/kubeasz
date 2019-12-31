@@ -1,0 +1,409 @@
+---
+piVersion: v1
+kind: Namespace
+metadata:
+  name: prometheus
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: prometheus
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 30s
+      scrape_timeout: 30s
+    rule_files:
+    - '/apt/conf/general.rules'
+    # Alerting specifies settings related to the Alertmanager.
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - 'oms.winmart.org'
+        bearer_token: '7c36a629db408a99f8abe5e72378e1d9b5939ee5'
+        path_prefix: '/api/v1/k8salerts/'
+        scheme: 'https'
+        tls_config:
+          insecure_skip_verify: false
+    scrape_configs:
+    - job_name: 'local-etcd'
+      static_configs:
+      - targets: ['10.22.16.16:2379']
+      scheme: https
+      tls_config:
+        insecure_skip_verify: true
+
+    - job_name: 'kubernetes-apiservers'
+      kubernetes_sd_configs:
+      - role: endpoints
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: https
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration because discovery & scraping are two separate concerns in
+      # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+      # the cluster. Otherwise, more config options have to be provided within the
+      # <kubernetes_sd_config>.
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      # Keep only the default/kubernetes service endpoints for the https port. This
+      # will add targets for each API server which Kubernetes adds an endpoint to
+      # the default/kubernetes service.
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+    - job_name: 'kubernetes-nodes'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics 
+    - job_name: 'kubernetes-cadvisor'
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: https
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration because discovery & scraping are two separate concerns in
+      # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+      # the cluster. Otherwise, more config options have to be provided within the
+      # <kubernetes_sd_config>.
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+      relabel_configs:
+      # Example relabel to scrape only pods that have
+      # "example.io/should_be_scraped = true" annotation.
+      #  - source_labels: [__meta_kubernetes_pod_annotation_example_io_should_be_scraped]
+      #    action: keep
+      #    regex: true
+      #
+      # Example relabel to customize metric path based on pod
+      # "example.io/metric_path = <metric path>" annotation.
+      #  - source_labels: [__meta_kubernetes_pod_annotation_example_io_metric_path]
+      #    action: replace
+      #    target_label: __metrics_path__
+      #    regex: (.+)
+      #
+      # Example relabel to scrape only single, desired port for the pod
+      # based on pod "example.io/scrape_port = <port>" annotation.
+      # Note that __address__ is modified here, so if pod containers' ports
+      # are declared, they all will be ignored.
+      - source_labels: [__meta_kubernetes_pod_annotation_weimob_com_scrape_port]
+        action: keep
+        regex: (\d+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_weimob_com_scrape_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod_name
+
+  general.rules: |
+    groups:
+    - name: example
+      rules:
+      - alert: QueryPerSecondTooHigh
+        expr: rate(weimob_metrics_requests_total[1m]) > 100
+        for: 30s
+        labels:
+          severity: page
+          cluster:  k8scs1online
+          source: pod_name
+        annotations:
+          description: 'qps is higher than 100 on {{ $labels.instance }}, current qps:  {{ printf "%.1f" $value}}'
+      - alert: ContainerCPUUsageHigh
+        expr: max(rate(container_cpu_usage_seconds_total{container_name!=""}[1m]) / on ( container_name, namespace, pod_name ) ((container_spec_cpu_quota{container_name!=""} !=0) / container_spec_cpu_period{container_name!=""})) by (pod_name, namespace) * 100 > 80
+        for: 30s
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: pod_name
+        annotations:
+          description: 'cpu usage is above 80% on {{ $labels.pod_name }}, current usage:  {{ printf "%.1f" $value }}%'
+      - alert: ContainerRSSUsageHigh
+        expr: max by(pod_name, namespace) (max(container_memory_rss{container_name!=""}) by (container_name, pod_name, namespace) / max (container_spec_memory_limit_bytes{container_name!=""} != 0) by (container_name, pod_name, namespace)) * 100 > 90
+        for: 30s
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: pod_name
+        annotations:
+          description: 'rss memory usage is above 90% on {{ $labels.pod_name }}, current usage:  {{ printf "%.1f" $value }}%'
+      - alert: ContainerRootDiskUsageHigh
+        expr: sum(container_fs_writes_bytes_total{pod_name!="",device=~"/dev/.d(a|b)",namespace!="prometheus"}) by (namespace, pod_name, device)  > 8589934592
+        for: 30s
+        labels:
+          severity: page
+          cluster:  k8scs1online
+          source: pod_name
+        annotations:
+          description: "container has written more than 8G byte on {{ $labels.device }}."
+      - alert: Service5xxResponse
+        expr: sum(delta(traefik_backend_requests_total{code=~"5.."}[2m])) by (backend) > 1
+        labels:
+          severity: page
+          cluster:  k8scs1online
+          source: backend
+        annotations:
+          description: '{{ printf "%.1f" $value }} 5xx responses from {{ $labels.backend }} received during last 2 minutes'
+      - alert: ServiceSlowResponse
+        expr: (sum(delta(traefik_backend_request_duration_seconds_sum{protocol!="sse"}[2m])) by (backend, protocol, method) > 0 / sum(delta(traefik_backend_request_duration_seconds_count[2m] )) by (backend, protocol, method) > 0) > 1
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: backend
+        annotations:
+            description: 'Average latency {{ printf "%.2f" $value }}s during last 2m for {{ $labels.backend }}:{{ $labels.protocol }}:{{ $labels.method }}'
+      - alert: KubeClientCertificateExpiration
+        annotations:
+          description: "A client certificate used in last 5 minutes to authenticate to the apiserver is expiring in less than 7 days."
+        expr: |
+          histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers"}[5m]))) < 604800
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: cluster-alert
+      - alert: KubeNodeDown
+        annotations:
+          description: "Node {{ $labels.instance }} is not reachable."
+        expr: sum (up{job="kubernetes-nodes"} ) by (instance) == 0
+        labels:
+          severity: page
+          cluster:  k8scs1online
+          source: cluster-alert
+
+      - alert: ContainerCPUThrottlingHigh
+        annotations:
+          description: "Container in {{ $labels.pod_name }} is throttled too much"
+        expr: sum(increase(container_cpu_cfs_throttled_periods_total{container_name!=""}[5m])) by (container_name, pod_name, namespace) / (sum(increase(container_cpu_cfs_periods_total{}[5m]))by (container_name, pod_name, namespace) >0) > 0.5
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: pod_name
+
+      - alert: CoreDNSProxyHighLatency
+        annotations:
+          description: 'The average delay between {{ $labels.instance }} and {{ $labels.to }} is too high: {{ printf "%.2f" $value }}s.'
+        expr: max(delta(coredns_proxy_request_duration_seconds_sum[2m]) / delta(coredns_proxy_request_duration_seconds_count[2m])) by (to, instance) > 1.8
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: cluster-alert
+
+      - alert: ClusterTooManyEvents
+        annotations:
+          description: 'Too many events happened, average {{ printf "%.1f" $value }}/s.'
+        expr: rate(eventwatcher_count_total[2m]) > 24
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: cluster-alert
+
+      - alert: SlowKubeletRuntime
+        annotations:
+          description: '{{ $labels.instance }} runtime operation {{ $labels.operation_type }} is too slow, average {{ printf "%.1f" $value }}s.'
+        expr: sum(increase(kubelet_runtime_operations_latency_microseconds_sum{operation_type!="pull_image"}[2m]) / (increase(kubelet_runtime_operations_latency_microseconds_count[2m]) != 0)) by (operation_type, instance) / 1000000 > 5
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: cluster-alert
+
+      - alert: SlowImagePull
+        annotations:
+          description: '{{ $labels.instance }} runtime operation for pulling image is too slow, average {{ printf "%.1f" $value }}s.'
+        expr: sum(increase(kubelet_runtime_operations_latency_microseconds_sum{operation_type="pull_image"}[2m]) / (increase(kubelet_runtime_operations_latency_microseconds_count[2m]) != 0)) by (operation_type, instance) / 1000000 > 120
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: cluster-alert
+
+      - alert: NetworkEgressBandwidthUsageHigh
+        annotations:
+          description: '{{ $labels.pod_name }} on {{ $labels.instance }} usage high: {{ printf "%.2f" $value }} KB/s'
+        expr: sum(rate(container_network_transmit_bytes_total{pod_name!=""}[2m])) by (pod_name, namespace, instance) / 1024  >= 1024
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: pod_name
+
+      - alert: NetworkIngressBandwidthUsageHigh
+        annotations:
+          description: '{{ $labels.pod_name }} on {{ $labels.instance }} usage high: {{ printf "%.2f" $value }} KB/s'
+        expr: sum(rate(container_network_receive_bytes_total{pod_name!=""}[2m])) by (pod_name, namespace, instance) / 1024  >= 1024
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: pod_name
+
+      - alert: DiskBandwidthUsageHigh
+        annotations:
+          description: '{{ $labels.pod_name }} on {{ $labels.instance }} usage high: {{ printf "%.2f" $value }} KB/s'
+        expr: sum( rate(container_fs_writes_bytes_total{pod_name != ""}[2m]) ) by ( instance, namespace, pod_name) / 1024 > 10240
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: pod_name
+
+      - alert: ApiServer5xxResponse
+        annotations:
+          description: "apiserver on {{ $labels.instance }} just send out 5xx responses."
+        expr: sum (delta(apiserver_request_count{code=~"5.."}[2m])) by (instance) > 0.5
+        labels:
+          severity: warning
+          cluster:  k8scs1online
+          source: cluster-alert
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  name: prometheus
+  namespace: prometheus
+  labels:
+    name: prometheus-service
+spec:
+  ports:
+  - name: http
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: prometheus
+  sessionAffinity: None
+  type: NodePort
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-serviceaccount
+  namespace: prometheus
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: prometheus-dev
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-dev
+subjects:
+- kind: ServiceAccount
+  name: prometheus-serviceaccount
+  namespace: prometheus
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: prometheus-deployment
+  name: prometheus
+  namespace: prometheus
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus-serviceaccount
+      containers:
+      - image: ccr.ccs.tencentyun.com/weimob-public/prometheus:v2.7.1
+        name: prometheus
+        command:
+        - "/bin/prometheus"
+        args:
+        - "--config.file=/apt/conf/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention=72h"
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "/prometheus"
+          name: data
+        - mountPath: "/apt/conf"
+          name: config-volume
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 5000m
+            memory: 2500Mi
+      volumes:
+      - emptyDir: {}
+        name: data
+      - configMap:
+          name: prometheus-config
+        name: config-volume
