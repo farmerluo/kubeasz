@@ -1,6 +1,19 @@
 {
-  "registry-mirrors": ["{{ REG_MIRROR_1 }}", "{{ REG_MIRROR_2 }}"
+  "registry-mirrors": [
+    "https://dockerhub.azk8s.cn",
+    "https://mirror.ccs.tencentyun.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://2h3po24q.mirror.aliyuncs.com"
   ],
+  "default-ulimits":{
+    "nofile": {
+       "Name": "nofile",
+       "Hard": 64000,
+       "Soft": 64000
+    }
+  },
   "max-concurrent-downloads": 20,
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
   "ip-masq": false,

@@ -1,8 +1,3 @@
-# 国内镜像加速
-
-REG_MIRROR_1: "https://mirror.ccs.tencentyun.com"
-REG_MIRROR_2: "https://hub-mirror.c.163.com"
-
 # docker日志相关
 
 LOG_DRIVER: "json-file"
