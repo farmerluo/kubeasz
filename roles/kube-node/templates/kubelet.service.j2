@@ -64,7 +64,7 @@ ExecStart={{ bin_dir }}/kubelet \
 {% endif %}
 {% endif %}
 {% if KUBE_BIND_CPU_ENABLED == "yes" %}
-  --feature-gates=CPUManager=true \
+  --feature-gates=CPUManager=true,VolumeSnapshotDataSource=true \
   --cpu-manager-policy=static \
 {% endif %}
   --eviction-hard={{ HARD_EVICTION }} \

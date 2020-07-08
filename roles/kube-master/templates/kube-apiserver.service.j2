@@ -30,6 +30,7 @@ ExecStart={{ bin_dir }}/kube-apiserver \
   --enable-swagger-ui=true \
   --endpoint-reconciler-type=lease \
   --allow-privileged=true \
+  --feature-gates=VolumeSnapshotDataSource=true \
   --audit-log-maxage=30 \
   --audit-log-maxbackup=3 \
   --audit-log-maxsize=100 \
