@@ -23,7 +23,7 @@ ExecStart={{ bin_dir }}/kubelet \
   --client-ca-file={{ ca_dir }}/ca.pem \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
-{% if regex_search(K8S_VER,'v1.1(0|1|2|3|4)') %}
+{% if K8S_VER is regex('v1.1(0|1|2|3|4)') %}
   --allow-privileged=true
   --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true
 {% else %}
