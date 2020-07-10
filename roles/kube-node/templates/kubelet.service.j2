@@ -24,10 +24,10 @@ ExecStart={{ bin_dir }}/kubelet \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
 {% if K8S_VER is regex('v1.1(0|1|2|3|4)') %}
-  --allow-privileged=true
-  --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true
+  --allow-privileged=true \
+  --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true \
 {% else %}
-  --feature-gates=VolumeSnapshotDataSource=true
+  --feature-gates=VolumeSnapshotDataSource=true \
 {% endif %}
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
   --network-plugin=kubenet \
