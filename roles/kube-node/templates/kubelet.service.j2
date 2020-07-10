@@ -23,6 +23,12 @@ ExecStart={{ bin_dir }}/kubelet \
   --client-ca-file={{ ca_dir }}/ca.pem \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
+{% if regex_search(K8S_VER,'v1.1(0|1|2|3|4)') %}
+  --allow-privileged=true
+  --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true
+{% else %}
+  --feature-gates=VolumeSnapshotDataSource=true
+{% endif %}
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
   --network-plugin=kubenet \
   --cloud-provider=external \
