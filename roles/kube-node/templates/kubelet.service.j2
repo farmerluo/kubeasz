@@ -23,11 +23,13 @@ ExecStart={{ bin_dir }}/kubelet \
   --client-ca-file={{ ca_dir }}/ca.pem \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
+  --cpu-manager-policy=static \
+{% endif %}
 {% if K8S_VER is regex('v1.1(0|1)') %}
   --allow-privileged=true \
 {% if KUBE_BIND_CPU_ENABLED == "yes" %}
   --feature-gates=CPUManager=true,VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true,VolumeScheduling=true \
-  --cpu-manager-policy=static \
 {% else %}
   --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true,VolumeScheduling=true \
 {% endif %}
