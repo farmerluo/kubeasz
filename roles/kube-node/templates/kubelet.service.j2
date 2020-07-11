@@ -17,13 +17,23 @@ ExecStartPre=/bin/rm -rf {{ KUBELET_ROOT_DIR }}/cpu_manager_state
 ExecStart={{ bin_dir }}/kubelet \
   --node-status-update-frequency=30s \
   --address={{ inventory_hostname }} \
-  --allow-privileged=true \
   --anonymous-auth=false \
   --authentication-token-webhook \
   --authorization-mode=Webhook \
   --client-ca-file={{ ca_dir }}/ca.pem \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
+{% if K8S_VER is regex('v1.1(0|1)') %}
+  --allow-privileged=true \
+  --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true,VolumeScheduling=true \
+{% elif K8S_VER is regex('v1.1(2|3|4)') %}
+  --allow-privileged=true \
+  --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true \
+{% elif K8S_VER is regex('v1.1(5|6)') %}
+  --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true \
+{% else %}
+  --feature-gates=VolumeSnapshotDataSource=true \
+{% endif %}
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
   --network-plugin=kubenet \
   --cloud-provider=external \
@@ -65,7 +75,7 @@ ExecStart={{ bin_dir }}/kubelet \
 {% endif %}
 {% endif %}
 {% if KUBE_BIND_CPU_ENABLED == "yes" %}
-  --feature-gates=CPUManager=true \
+  --feature-gates=CPUManager=true,VolumeSnapshotDataSource=true \
   --cpu-manager-policy=static \
 {% endif %}
   --eviction-hard={{ HARD_EVICTION }} \
