@@ -23,9 +23,16 @@ ExecStart={{ bin_dir }}/kubelet \
   --client-ca-file={{ ca_dir }}/ca.pem \
   --cluster-dns={{ CLUSTER_DNS_SVC_IP }} \
   --cluster-domain={{ CLUSTER_DNS_DOMAIN }} \
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
+  --cpu-manager-policy=static \
+{% endif %}
 {% if K8S_VER is regex('v1.1(0|1)') %}
   --allow-privileged=true \
+{% if KUBE_BIND_CPU_ENABLED == "yes" %}
+  --feature-gates=CPUManager=true,VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true,VolumeScheduling=true \
+{% else %}
   --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true,KubeletPluginsWatcher=true,VolumeScheduling=true \
+{% endif %}
 {% elif K8S_VER is regex('v1.1(2|3|4)') %}
   --allow-privileged=true \
   --feature-gates=VolumeSnapshotDataSource=true,CSINodeInfo=true,CSIDriverRegistry=true \
@@ -74,10 +81,7 @@ ExecStart={{ bin_dir }}/kubelet \
   --system-reserved-cgroup=/system.slice \
 {% endif %}
 {% endif %}
-{% if KUBE_BIND_CPU_ENABLED == "yes" %}
-  --feature-gates=CPUManager=true,VolumeSnapshotDataSource=true \
-  --cpu-manager-policy=static \
-{% endif %}
+
   --eviction-hard={{ HARD_EVICTION }} \
   --log-dir={{ log_dir }}/ \
   --logtostderr=false \
