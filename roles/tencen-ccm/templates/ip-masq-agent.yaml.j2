@@ -1,34 +1,51 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
+  labels:
+    k8s-app: ip-masq-agent
   name: ip-masq-agent
   namespace: kube-system
 spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: ip-masq-agent
   template:
     metadata:
+      creationTimestamp: null
       labels:
         k8s-app: ip-masq-agent
     spec:
-      hostNetwork: true
-      tolerations:
-        - key: "kubernetes.io/role"
-          value: "master"
-          effect: "NoSchedule"
       containers:
-      - name: ip-masq-agent
-        image: {{ gcr_mirror }}google-containers/ip-masq-agent-amd64:v2.5.0
+      - image: {{ gcr_mirror }}google-containers/ip-masq-agent-amd64:v2.5.0
+        imagePullPolicy: IfNotPresent
+        name: ip-masq-agent
+        resources: {}
         securityContext:
           privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-          - name: config
-            mountPath: /etc/config
+        - mountPath: /etc/config
+          name: config
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: kubernetes.io/role
+        value: master
       volumes:
-        - name: config
-          configMap:
-            # Note this ConfigMap must be created in the same namespace as the daemon pods - this spec uses kube-system
-            name: ip-masq-agent
-            optional: true
-            items:
-              # The daemon looks for its config in a YAML file at /etc/config/ip-masq-agent
-              - key: config
-                path: ip-masq-agent
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: config
+            path: ip-masq-agent
+          name: ip-masq-agent
+          optional: true
+        name: config
+  updateStrategy:
+    type: OnDelete

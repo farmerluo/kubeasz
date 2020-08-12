@@ -182,70 +182,88 @@ kind: List
 metadata: {}
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
+  labels:
+    app: tencentcloud-cloud-controller-manager
   name: tencentcloud-cloud-controller-manager
   namespace: kube-system
 spec:
-  replicas: 3 
-  revisionHistoryLimit: 2
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tencentcloud-cloud-controller-manager
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: tencentcloud-cloud-controller-manager
     spec:
-      serviceAccountName: cloud-controller-manager
+      containers:
+      - command:
+        - /bin/tencentcloud-cloud-controller-manager
+        - --cloud-provider=tencentcloud # 指定 cloud provider 为 tencentcloud
+        - --allocate-node-cidrs=true # 指定 cloud provider 为 tencentcloud 为 node 分配 cidr
+        - --cluster-cidr={{ CLUSTER_CIDR }} # 集群 pod 所在网络，需要提前创建
+#          - --master={{ KUBE_APISERVER }} # master 的非 https api 地址
+        - --cluster-name=kubernetes # 集群名称
+        - --use-service-account-credentials
+        - --configure-cloud-routes=true
+        - --allow-untagged-cloud=true
+        - --node-monitor-period=60s
+        - --route-reconciliation-period=60s
+        env:
+        - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_REGION
+          valueFrom:
+            secretKeyRef:
+              key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_REGION
+              name: tencentcloud-cloud-controller-manager-config
+        - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_ID
+          valueFrom:
+            secretKeyRef:
+              key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_ID
+              name: tencentcloud-cloud-controller-manager-config
+        - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_KEY
+              name: tencentcloud-cloud-controller-manager-config
+        - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_CLUSTER_ROUTE_TABLE
+          valueFrom:
+            secretKeyRef:
+              key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_CLUSTER_ROUTE_TABLE
+              name: tencentcloud-cloud-controller-manager-config
+        - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_VPC_ID
+          valueFrom:
+            secretKeyRef:
+              key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_VPC_ID
+              name: tencentcloud-cloud-controller-manager-config
+        image: ccr.ccs.tencentyun.com/library/tencentcloud-cloud-controller-manager:1.0.1
+        imagePullPolicy: IfNotPresent
+        name: tencentcloud-cloud-controller-manager
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
       dnsPolicy: Default
       hostNetwork: true
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: cloud-controller-manager
+      serviceAccountName: cloud-controller-manager
+      terminationGracePeriodSeconds: 30
       tolerations:
-        - key: "node.cloudprovider.kubernetes.io/uninitialized"
-          value: "true"
-          effect: "NoSchedule"
-        - key: "node.kubernetes.io/network-unavailable"
-          effect: "NoSchedule"
-        - key: "kubernetes.io/role"
-          value: "master"
-          effect: "NoSchedule"
-      containers:
-      - image: ccr.ccs.tencentyun.com/library/tencentcloud-cloud-controller-manager:1.0.1
-        name: tencentcloud-cloud-controller-manager
-        command:
-          - /bin/tencentcloud-cloud-controller-manager
-          - --cloud-provider=tencentcloud # 指定 cloud provider 为 tencentcloud
-          - --allocate-node-cidrs=true # 指定 cloud provider 为 tencentcloud 为 node 分配 cidr
-          - --cluster-cidr={{ CLUSTER_CIDR }} # 集群 pod 所在网络，需要提前创建
-#          - --master={{ KUBE_APISERVER }} # master 的非 https api 地址
-          - --cluster-name=kubernetes # 集群名称
-          - --use-service-account-credentials
-          - --configure-cloud-routes=true
-          - --allow-untagged-cloud=true
-          - --node-monitor-period=60s
-          - --route-reconciliation-period=60s
-        env:
-          - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_REGION
-            valueFrom:
-              secretKeyRef:
-                name: tencentcloud-cloud-controller-manager-config
-                key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_REGION
-          - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_ID
-            valueFrom:
-              secretKeyRef:
-                name: tencentcloud-cloud-controller-manager-config
-                key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_ID
-          - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: tencentcloud-cloud-controller-manager-config
-                key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_SECRET_KEY
-          - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_CLUSTER_ROUTE_TABLE
-            valueFrom:
-              secretKeyRef:
-                name: tencentcloud-cloud-controller-manager-config
-                key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_CLUSTER_ROUTE_TABLE
-          - name: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_VPC_ID
-            valueFrom:
-              secretKeyRef:
-                name: tencentcloud-cloud-controller-manager-config
-                key: TENCENTCLOUD_CLOUD_CONTROLLER_MANAGER_VPC_ID
-
+      - effect: NoSchedule
+        key: node.cloudprovider.kubernetes.io/uninitialized
+        value: "true"
+      - effect: NoSchedule
+        key: node.kubernetes.io/network-unavailable
+      - effect: NoSchedule
+        key: kubernetes.io/role
+        value: master
