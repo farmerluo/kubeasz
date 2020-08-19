@@ -6,7 +6,7 @@
 # @author:   gjmzj
 # @usage:    ./easzup
 # @repo:     https://github.com/farmerluo/kubeasz
-# @ref:      https://github.com/kubeasz/dockerfiles
+# @ref:      https://github.com/farmerluo/dockerfiles
 #--------------------------------------------------
 
 set -o nounset
