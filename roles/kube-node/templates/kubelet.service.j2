@@ -82,7 +82,6 @@ ExecStart={{ bin_dir }}/kubelet \
   --system-reserved-cgroup=/system.slice \
 {% endif %}
 {% endif %}
-
   --eviction-hard={{ HARD_EVICTION }} \
   --log-dir={{ log_dir }}/ \
   --logtostderr=false \
