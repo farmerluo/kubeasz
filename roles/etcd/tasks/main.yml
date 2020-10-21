@@ -38,6 +38,10 @@
   template: src=etcd.service.j2 dest=/etc/systemd/system/etcd.service
   tags: upgrade_etcd
 
+- name: 修改etcd目录权限
+  shell: chmod 700 -R {{ data_dir }}/etcd
+  ignore_errors: true
+
 - name: 开机启用etcd服务
   shell: systemctl enable etcd
   ignore_errors: true
