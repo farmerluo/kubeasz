@@ -47,7 +47,7 @@ spec:
         - --accessLog.fields.headers.names="X-Forwarded-For=keep X-Forwarded-Host=keep
           X-Forwarded-Port=keep X-Forwarded-Proto=keep X-Forwarded-For-Pound=keep
           X-Real-Ip=keep User-Agent=keep Globalticket=keep weimob-pid=keep"
-        image: traefik:v1.7.24-alpine
+        image: traefik:v1.7.26-alpine
         imagePullPolicy: IfNotPresent
         name: traefik-ingress-lb
         ports:

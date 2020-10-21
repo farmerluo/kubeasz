@@ -95,7 +95,7 @@ spec:
       - args:
         - -conf
         - /etc/coredns/Corefile
-        image: coredns/coredns::{{ corednsVer }}
+        image: coredns/coredns:{{ corednsVer }}
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 5
