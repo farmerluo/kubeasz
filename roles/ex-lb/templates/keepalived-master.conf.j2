@@ -21,6 +21,8 @@ vrrp_instance VI-kube-master {
     interface {{ LB_IF }}
     virtual_router_id {{ ROUTER_ID }}
     advert_int 3
+    garp_master_delay 1
+    garp_master_refresh 5
     track_script {
         check-haproxy
     }
