@@ -10,11 +10,12 @@
   "default-ulimits":{
     "nofile": {
        "Name": "nofile",
-       "Hard": 64000,
-       "Soft": 64000
+       "Hard": 65535,
+       "Soft": 65535
     }
   },
-  "max-concurrent-downloads": 20,
+  "live-restore": true,
+  "max-concurrent-downloads": 50,
 {% if CLUSTER_NETWORK=="tencen-ccm" %}
   "ip-masq": false,
   "iptables": false,
