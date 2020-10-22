@@ -27,4 +27,6 @@ vrrp_instance VI-kube-master {
     virtual_ipaddress {
         {{ MASTER_IP }}
     }
+    garp_master_delay 1
+    garp_master_refresh 5
 }
